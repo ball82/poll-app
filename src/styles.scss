@@ -1,1 +1,21 @@
 /* You can add global styles to this file, and also import other style files */
+:root {
+  --color-bg: #35273b;        /* dunkles Lila im Hintergrund */
+  --color-surface: #faf5fe;   /* helle Karten */
+  --color-primary: #ffb770;   /* Orange für Buttons */
+  --color-accent: #fee9d4;    /* helleres Orange */
+  --color-text-light: #FFFFFF;
+  --color-text-dark: #2D1B3D;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text-light);
+  font-family: 'Inter', sans-serif;
+}
