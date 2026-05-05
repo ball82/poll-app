@@ -20,7 +20,7 @@
   <h2 class="surveys-section__title">Your surveys</h2>
 
   @if (endingSoon().length > 0) {
-    <h3 class="surveys-section__subtitle">Ending soon surveys</h3>
+    <p class="surveys-section__subtitle">Ending soon surveys</p>
     <div class="ending-soon">
       @for (survey of endingSoon(); track survey.id) {
         <app-survey-card [survey]="survey" variant="highlight" />

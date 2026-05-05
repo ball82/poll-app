@@ -1,4 +1,11 @@
 /* You can add global styles to this file, and also import other style files */
+
+@font-face {
+  font-family: 'Nerko One';
+  src: url('/assets/fonts/NerkoOne-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
 :root {
   --color-bg: #35273b;        /* dunkles Lila im Hintergrund */
   --color-surface: #faf5fe;   /* helle Karten */
@@ -12,17 +19,29 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  
+}
+
+h1 {
+  font-family: 'Nerko One', cursive;
+  font-size: 100px;
+}
+
+h2 {
+  font-family: 'Nerko One', cursive;
+  font-size: 72px;
+}
+
+h3 {
+  font-family: 'Nerko One', cursive;
+  font-size: 56px;
 }
 
 body {
+  padding: 24px;
   background-color: var(--color-bg);
   color: var(--color-text-light);
-  font-family: 'Inter', sans-serif;
-  padding: 5rem;
-}
-
-.main {
-  padding: 0 48px 48px;
+  font-family: 'Mulish', sans-serif;
   max-width: 1400px;
   margin: 0 auto;
 }

@@ -7,18 +7,18 @@
 
   &__text {
     flex: 1;
-    max-width: 600px;
+    max-width: 700px;
   }
 
   &__title {
-    font-size: 64px;
     line-height: 1.1;
     color: var(--color-primary);
     margin-bottom: 24px;
   }
 
   &__description {
-    font-size: 16px;
+    font-family: 'Mulish', sans-serif;
+    font-size: 24px;
     line-height: 1.5;
     color: var(--color-text-light);
     margin-bottom: 32px;
@@ -39,14 +39,14 @@
   }
 
   &__image img {
-    max-width: 320px;
+    width: 580px;
     height: auto;
   }
 }
 
 .surveys-section {
   &__title {
-    font-size: 48px;
+
     color: var(--color-primary);
     text-align: center;
     margin-bottom: 48px;

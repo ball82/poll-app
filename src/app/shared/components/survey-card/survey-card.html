@@ -1,6 +1,6 @@
 <a [routerLink]="['/survey', survey().id]" class="card" [class.card--list]="variant() === 'list'">
   <span class="card__category">{{ survey().category }}</span>
-  <h3 class="card__title">{{ survey().title }}</h3>
+  <p class="card__title">{{ survey().title }}</p>
 
   @if (endsInLabel()) {
     <span class="card__badge">{{ endsInLabel() }}</span>
