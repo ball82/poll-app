@@ -44,18 +44,6 @@
   }
 }
 
-/* Mobile */
-@media (max-width: 768px) {
-  .hero {
-    flex-direction: column;
-    text-align: center;
-
-    &__title {
-      font-size: 40px;
-    }
-  }
-}
-
 .surveys-section {
   &__title {
     font-size: 48px;
@@ -80,4 +68,108 @@
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
   }
+}
+
+.filter-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.tabs {
+  display: flex;
+  gap: 12px;
+
+  &__btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 999px;
+    background-color: transparent;
+    color: var(--color-text-light);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &--active {
+      background-color: var(--color-accent);
+      color: var(--color-text-dark);
+      font-weight: 600;
+    }
+
+    &:hover:not(.tabs__btn--active) {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+
+.category-dropdown {
+  position: relative;
+
+  &__trigger {
+    background: transparent;
+    border: none;
+    color: var(--color-text-light);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__arrow {
+    font-size: 12px;
+  }
+
+  &__menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    list-style: none;
+    background-color: var(--color-surface);
+    color: var(--color-text-dark);
+    border-radius: 8px;
+    padding: 8px 0;
+    min-width: 240px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+  }
+
+  &__item {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--color-text-dark);
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    &--active {
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+  }
+}
+
+.surveys-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px;
+  color: rgba(255, 255, 255, 0.5);
 }

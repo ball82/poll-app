@@ -27,4 +27,59 @@
       }
     </div>
   }
+
+<div class="filter-bar">
+    <div class="tabs">
+      <button
+        class="tabs__btn"
+        [class.tabs__btn--active]="selectedTab() === 'active'"
+        (click)="setTab('active')"
+      >
+        Active survey
+      </button>
+      <button
+        class="tabs__btn"
+        [class.tabs__btn--active]="selectedTab() === 'past'"
+        (click)="setTab('past')"
+      >
+        Past survey
+      </button>
+    </div>
+
+    <div class="category-dropdown">
+      <button class="category-dropdown__trigger" (click)="toggleCategoryDropdown()">
+        {{ selectedCategory() === 'All' ? 'Sort by categories' : selectedCategory() }}
+        <span class="category-dropdown__arrow">▾</span>
+      </button>
+
+      @if (isCategoryDropdownOpen()) {
+        <ul class="category-dropdown__menu">
+          @for (cat of categories; track cat) {
+            <li>
+              <button
+                class="category-dropdown__item"
+                [class.category-dropdown__item--active]="selectedCategory() === cat"
+                (click)="selectCategory(cat)"
+              >
+                {{ cat }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+
+  <!-- Liste der Surveys -->
+  @if (filteredSurveys().length > 0) {
+    <div class="surveys-list">
+      @for (survey of filteredSurveys(); track survey.id) {
+        <app-survey-card [survey]="survey" variant="list" />
+      }
+    </div>
+  } @else {
+    <p class="empty-state">No surveys found.</p>
+  }
 </section>
+
+
