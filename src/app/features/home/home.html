@@ -1,1 +1,30 @@
-<p>home works!</p>
+
+<section class="hero">
+  <div class="hero__text">
+    <h1 class="hero__title">Collect Feedback,<br />Unlock Ideas</h1>
+    <p class="hero__description">
+      Create and share surveys in minutes – from team events to workplace
+      culture. Collect opinions, engage your audience, and turn feedback
+      into action.
+    </p>
+    <a routerLink="/create" class="hero__cta">New survey</a>
+  </div>
+
+  <div class="hero__image">
+    <!-- Bild aus deinem Figma in src/assets/ legen -->
+    <img src="assets/hero_img.svg" alt="" />
+  </div>
+</section>
+
+<section class="surveys-section">
+  <h2 class="surveys-section__title">Your surveys</h2>
+
+  @if (endingSoon().length > 0) {
+    <h3 class="surveys-section__subtitle">Ending soon surveys</h3>
+    <div class="ending-soon">
+      @for (survey of endingSoon(); track survey.id) {
+        <app-survey-card [survey]="survey" variant="highlight" />
+      }
+    </div>
+  }
+</section>

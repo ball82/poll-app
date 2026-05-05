@@ -1,5 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Survey, Question, Answer, SurveyCategory } from '../models/survey.model';
+import { MOCK_SURVEYS } from './mock-surveys';
 
 const STORAGE_KEY = 'poll-app-surveys';
 
@@ -8,7 +9,7 @@ const STORAGE_KEY = 'poll-app-surveys';
 })
 export class SurveyService {
   // privater, schreibbarer Signal-State
-  private readonly _surveys = signal<Survey[]>(this.loadFromStorage());
+  private readonly _surveys = signal<Survey[]>(MOCK_SURVEYS);
 
   // öffentlicher, nur lesbarer State
   readonly surveys = this._surveys.asReadonly();
@@ -96,14 +97,19 @@ export class SurveyService {
 
   // --- LocalStorage Helper ---
 
-  private loadFromStorage(): Survey[] {
-    try {
-      const data = localStorage.getItem(STORAGE_KEY);
-      return data ? JSON.parse(data) : [];
-    } catch {
-      return [];
+private loadFromStorage(): Survey[] {
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    if (data) {
+      return JSON.parse(data);
     }
+    // Beim ersten Start: Mock-Daten laden und speichern
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(MOCK_SURVEYS));
+    return MOCK_SURVEYS;
+  } catch {
+    return [];
   }
+}
 
   private saveToStorage(): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(this._surveys()));

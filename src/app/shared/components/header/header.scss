@@ -1,0 +1,18 @@
+.header {
+  padding: 24px 48px;
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  display: inline-block;
+  text-decoration: none;
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 24px;
+
+  img {
+    height: 48px;
+    width: auto;
+  }
+}
