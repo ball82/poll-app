@@ -46,11 +46,13 @@ export class SurveyService {
   readonly error = this._error.asReadonly();
 
   readonly activeSurveys = computed(() =>
-    this._surveys().filter(s => !this.isExpired(s) && s.status === 'published')
+    this.sortByEndDate(
+      this._surveys().filter(s => !this.isExpired(s) && s.status === 'published')
+    )
   );
 
   readonly pastSurveys = computed(() =>
-    this._surveys().filter(s => this.isExpired(s))
+    this.sortByEndDate(this._surveys().filter(s => this.isExpired(s)))
   );
 
   readonly endingSoonSurveys = computed(() =>
@@ -312,6 +314,15 @@ export class SurveyService {
     if (!survey.endDate) return null;
     const diff = new Date(survey.endDate).getTime() - Date.now();
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  }
+
+  private sortByEndDate(surveys: Survey[]): Survey[] {
+    return [...surveys].sort((a, b) => this.endTime(a) - this.endTime(b));
+  }
+
+  private endTime(survey: Survey): number {
+    if (!survey.endDate) return Number.POSITIVE_INFINITY;
+    return new Date(survey.endDate).getTime();
   }
 
   private handleError(err: unknown, fallback: string, label: string): void {
