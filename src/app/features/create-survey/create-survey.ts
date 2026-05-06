@@ -33,12 +33,15 @@ export class CreateSurvey {
     'Technology & Innovation',
   ];
 
+  // Heutiges Datum als YYYY-MM-DD für das min-Attribut
+  readonly minDate = new Date().toISOString().split('T')[0];
+
   // Hauptformular
   // Pflichtfelder: title, category, mind. 1 Frage mit 2 Antworten
   form: FormGroup = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(3)]],
     category: ['', Validators.required],
-    endDate: [''],         // optional
+    endDate: ['', Validators.required],         // optional
     description: [''],     // optional
     questions: this.fb.array([this.createQuestion()]),
   });
@@ -109,44 +112,48 @@ export class CreateSurvey {
     this.form.get(controlName)?.reset('');
   }
 
-  // Publish
-  submit(): void {
-    if (this.form.invalid) {
-      // Alle Felder als touched markieren, damit Fehler sichtbar werden
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    const v = this.form.value;
-    const newSurvey: Survey = {
-      id: this.surveyService.generateId(),
-      title: v.title!.trim(),
-      description: v.description?.trim() || undefined,
-      category: v.category as SurveyCategory,
-      endDate: v.endDate ? new Date(v.endDate).toISOString() : undefined,
-      createdAt: new Date().toISOString(),
-      status: 'published',
-      questions: v.questions!.map((q: any) => ({
-        id: this.surveyService.generateId(),
-        text: q.text.trim(),
-        allowMultiple: q.allowMultiple,
-        answers: q.answers.map((a: any) => ({
-          id: this.surveyService.generateId(),
-          text: a.text.trim(),
-          votes: 0,
-        })),
-      })),
-    };
-
-    this.surveyService.addSurvey(newSurvey);
-    this.showSuccessOverlay.set(true);
-
-    // Nach 1.5s zur Detail-Seite der neuen Umfrage
-    setTimeout(() => {
-      this.showSuccessOverlay.set(false);
-      this.router.navigate(['/survey', newSurvey.id]);
-    }, 1500);
+  async submit(): Promise<void> {
+  if (this.form.invalid) {
+    this.form.markAllAsTouched();
+    return;
   }
+
+  const v = this.form.value;
+
+  // ID wird in der Datenbank generiert, deshalb hier nicht mehr nötig
+  const newSurveyInput = {
+    title: v.title!.trim(),
+    description: v.description?.trim() || undefined,
+    category: v.category as SurveyCategory,
+    endDate: new Date(v.endDate!).toISOString(),
+    status: 'published' as const,
+    questions: v.questions!.map((q: any) => ({
+      id: this.surveyService.generateId(),
+      text: q.text.trim(),
+      allowMultiple: q.allowMultiple,
+      answers: q.answers.map((a: any) => ({
+        id: this.surveyService.generateId(),
+        text: a.text.trim(),
+        votes: 0,
+      })),
+    })),
+  };
+
+  const created = await this.surveyService.addSurvey(newSurveyInput);
+
+  if (!created) {
+    // Fehler beim Speichern
+    return;
+  }
+
+  this.showSuccessOverlay.set(true);
+
+  setTimeout(() => {
+    this.showSuccessOverlay.set(false);
+    this.router.navigate(['/survey', created.id]);
+  }, 1500);
+}
+
 
   cancel(): void {
     this.router.navigate(['/home']);

@@ -113,9 +113,15 @@
     color: var(--color-text-light);
   }
 
+  &__required {
+    color: #ff8a8a;
+    font-weight: 700;
+    margin-left: 2px;
+  }
+
   &__optional {
     font-weight: 400;
-    opacity: 0.7;
+    opacity: 0.6;
     font-size: 16px;
   }
 
@@ -162,11 +168,16 @@
       resize: vertical;
       min-height: 100px;
     }
+
+    &--error {
+      outline: 2px solid #ff8a8a;
+    }
   }
 
   &__error {
     color: #ff8a8a;
     font-size: 16px;
+    margin-top: -8px;
   }
 }
 
@@ -240,12 +251,19 @@ select.field__input {
 .answer-row {
   display: grid;
   grid-template-columns: 24px 1fr 32px;
-  align-items: center;
+  align-items: start;
   gap: 10px;
 
   &__letter {
     font-weight: 700;
     font-size: 16px;
+    padding-top: 10px;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
   }
 }
 

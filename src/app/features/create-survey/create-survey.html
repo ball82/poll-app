@@ -22,46 +22,39 @@
             <!-- Survey name -->
             <div class="field">
               <div class="field__head">
-                <label for="title" class="field__label">Survey name</label>
+                <label for="title" class="field__label">
+                  Survey name <span class="field__required">*</span>
+                </label>
                 <button type="button" class="field__clear" (click)="clearField('title')" aria-label="Clear">
                   🗑
                 </button>
               </div>
-              <input id="title" type="text" formControlName="title" class="field__input" />
+              <input id="title" type="text" formControlName="title" class="field__input"
+                [class.field__input--error]="form.get('title')?.touched && form.get('title')?.invalid" />
               @if (form.get('title')?.touched && form.get('title')?.invalid) {
-              <p class="field__error">Survey name is required (min 3 characters).</p>
+              <p class="field__error">Survey name is required (min. 3 characters).</p>
               }
             </div>
 
             <!-- End date + Category -->
-            <div class="field-row">
-              <div class="field">
-                <div class="field__head">
-                  <label for="endDate" class="field__label">
-                    Set end date <span class="field__optional">(optional)</span>
-                  </label>
-                  <button type="button" class="field__clear" (click)="clearField('endDate')" aria-label="Clear">
-                    🗑
-                  </button>
-                </div>
-                <input id="endDate" type="date" formControlName="endDate" class="field__input" />
-              </div>
-
-              <div class="field">
-                <label for="category" class="field__label">
-                  Choose category <span class="field__arrow">▾</span>
-                </label>
-                <select id="category" formControlName="category" class="field__input">
-                  <option value="" disabled>Select…</option>
-                  @for (cat of categories; track cat) {
-                  <option [value]="cat">{{ cat }}</option>
-                  }
-                </select>
-                @if (form.get('category')?.touched && form.get('category')?.invalid) {
-                <p class="field__error">Please choose a category.</p>
-                }
-              </div>
-            </div>
+<div class="field">
+  <div class="field__head">
+    <label for="endDate" class="field__label">Set end date</label>
+    <button type="button" class="field__clear" (click)="clearField('endDate')" aria-label="Clear">
+      🗑
+    </button>
+  </div>
+  <input
+    id="endDate"
+    type="date"
+    formControlName="endDate"
+    class="field__input"
+    [min]="minDate"
+  />
+  @if (form.get('endDate')?.touched && form.get('endDate')?.invalid) {
+    <p class="field__error">Please choose an end date.</p>
+  }
+</div>
 
             <!-- Fragen -->
             <div class="questions-section" formArrayName="questions">
@@ -69,7 +62,7 @@
               <div class="question-block" [formGroupName]="qIndex">
                 <div class="question-block__head">
                   <label class="question-block__label">
-                    {{ qIndex + 1 }}. Question
+                    {{ qIndex + 1 }}. Question <span class="field__required">*</span>
                   </label>
                   <button type="button" class="field__clear" (click)="removeQuestion(qIndex)"
                     aria-label="Remove question">
@@ -78,14 +71,15 @@
                 </div>
 
                 <input type="text" formControlName="text" class="field__input"
-                  placeholder="Which date would work best for you?" />
+                  placeholder="Which date would work best for you?"
+                  [class.field__input--error]="question.get('text')?.touched && question.get('text')?.invalid" />
                 @if (question.get('text')?.touched && question.get('text')?.invalid) {
                 <p class="field__error">Question text is required.</p>
                 }
 
                 <div class="answers-section">
                   <div class="answers-section__head">
-                    <span class="field__label">Answers</span>
+                    <span class="field__label">Answers <span class="field__required">*</span></span>
                     <label class="multi-toggle">
                       <input type="checkbox" formControlName="allowMultiple" />
                       Allow multiple answers.
@@ -98,7 +92,13 @@
                       <span class="answer-row__letter">
                         {{ ['A', 'B', 'C', 'D', 'E', 'F'][aIndex] }}.
                       </span>
-                      <input type="text" formControlName="text" class="field__input answer-row__input" />
+                      <div class="answer-row__field">
+                        <input type="text" formControlName="text" class="field__input answer-row__input"
+                          [class.field__input--error]="answer.get('text')?.touched && answer.get('text')?.invalid" />
+                        @if (answer.get('text')?.touched && answer.get('text')?.invalid) {
+                        <p class="field__error">Answer text is required.</p>
+                        }
+                      </div>
                       <button type="button" class="field__clear" (click)="removeAnswer(qIndex, aIndex)"
                         [disabled]="getAnswers(qIndex).length <= 2" aria-label="Remove answer">
                         🗑

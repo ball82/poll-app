@@ -15,6 +15,13 @@ export class SurveyDetail implements OnInit, OnDestroy {
   private surveyService = inject(SurveyService);
   private document = inject(DOCUMENT);
 
+
+  constructor() {
+  // Falls die Surveys noch nicht geladen sind, jetzt laden
+  if (this.surveyService.surveys().length === 0) {
+    this.surveyService.loadSurveys();
+  }
+}
   ngOnInit(): void {
     this.document.body.classList.add('page-light');
   }
@@ -42,8 +49,10 @@ export class SurveyDetail implements OnInit, OnDestroy {
     return s ? this.surveyService.isExpired(s) : false;
   });
 
-  // Hat der User schon abgestimmt?
-  hasVoted = computed(() => this.survey()?.hasVoted ?? false);
+  hasVoted = computed(() => {
+    const s = this.survey();
+    return s ? this.surveyService.hasVoted(s.id) : false;
+  });
 
   // Verbleibende Tage Label
   endsInLabel = computed(() => {
@@ -94,22 +103,20 @@ export class SurveyDetail implements OnInit, OnDestroy {
   }
 
   // Stimme abgeben
-  submitVote(): void {
-    const s = this.survey();
-    if (!s) return;
+ async submitVote(): Promise<void> {
+  const s = this.survey();
+  if (!s) return;
 
-    // Daten aus Map in das vom Service erwartete Format umbauen
-    const votes = Array.from(this.selectedAnswers().entries()).map(
-      ([questionId, set]) => ({
-        questionId,
-        answerIds: Array.from(set),
-      })
-    );
+  const votes = Array.from(this.selectedAnswers().entries()).map(
+    ([questionId, set]) => ({
+      questionId,
+      answerIds: Array.from(set),
+    })
+  );
 
-    this.surveyService.vote(s.id, votes);
-    this.showResults.set(true);
-  }
-
+  await this.surveyService.vote(s.id, votes);
+  this.showResults.set(true);
+}
   // Mindestens eine Antwort gewählt? (sonst Submit deaktivieren)
   canSubmit = computed(() => {
     if (this.hasVoted() || this.isExpired()) return false;

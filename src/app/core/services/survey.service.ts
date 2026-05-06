@@ -1,18 +1,22 @@
-import { Injectable, signal, computed } from '@angular/core';
-import { Survey, Question, Answer, SurveyCategory } from '../models/survey.model';
-import { MOCK_SURVEYS } from './mock-surveys';
-
-const STORAGE_KEY = 'poll-app-surveys';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { Survey, SurveyCategory } from '../models/survey.model';
+import { Supabase } from './supabase';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SurveyService {
+  private supabase = inject(Supabase);
+
   // privater, schreibbarer Signal-State
-  private readonly _surveys = signal<Survey[]>(MOCK_SURVEYS);
+  private readonly _surveys = signal<Survey[]>([]);
+  private readonly _isLoading = signal<boolean>(false);
+  private readonly _error = signal<string | null>(null);
 
   // öffentlicher, nur lesbarer State
   readonly surveys = this._surveys.asReadonly();
+  readonly isLoading = this._isLoading.asReadonly();
+  readonly error = this._error.asReadonly();
 
   // Computed: alle aktiven Umfragen (nicht abgelaufen)
   readonly activeSurveys = computed(() =>
@@ -34,84 +38,214 @@ export class SurveyService {
       .slice(0, 3)
   );
 
-  // Eine bestimmte Umfrage holen
+  constructor() {
+    // Beim Start: Daten aus Supabase laden
+    this.loadSurveys();
+  }
+
+  // ===== SURVEYS LADEN =====
+  async loadSurveys(): Promise<void> {
+    this._isLoading.set(true);
+    this._error.set(null);
+
+    try {
+      // 1) Surveys laden
+      const { data: surveysData, error: sError } = await this.supabase.client
+        .from('surveys')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (sError) throw sError;
+
+      // 2) Questions laden
+      const { data: questionsData, error: qError } = await this.supabase.client
+        .from('questions')
+        .select('*')
+        .order('position', { ascending: true });
+
+      if (qError) throw qError;
+
+      // 3) Answers laden
+      const { data: answersData, error: aError } = await this.supabase.client
+        .from('answers')
+        .select('*')
+        .order('position', { ascending: true });
+
+      if (aError) throw aError;
+
+      // 4) Daten zusammenbauen (DB-Format -> App-Format)
+      const surveys: Survey[] = (surveysData ?? []).map(s => ({
+        id: s.id,
+        title: s.title,
+        description: s.description ?? undefined,
+        category: s.category as SurveyCategory,
+        endDate: s.end_date ?? undefined,
+        createdAt: s.created_at,
+        status: s.status,
+        questions: (questionsData ?? [])
+          .filter(q => q.survey_id === s.id)
+          .map(q => ({
+            id: q.id,
+            text: q.text,
+            allowMultiple: q.allow_multiple,
+            answers: (answersData ?? [])
+              .filter(a => a.question_id === q.id)
+              .map(a => ({
+                id: a.id,
+                text: a.text,
+                votes: a.votes,
+              })),
+          })),
+      }));
+
+      this._surveys.set(surveys);
+    } catch (err: any) {
+      console.error('Error loading surveys:', err);
+      this._error.set(err.message ?? 'Failed to load surveys');
+    } finally {
+      this._isLoading.set(false);
+    }
+  }
+
+  // Eine bestimmte Umfrage aus dem aktuellen State holen
   getSurveyById(id: string): Survey | undefined {
     return this._surveys().find(s => s.id === id);
   }
 
-  // Neue Umfrage hinzufügen
-  addSurvey(survey: Survey): void {
-    this._surveys.update(list => [...list, survey]);
-    this.saveToStorage();
+  // ===== NEUE SURVEY ANLEGEN =====
+  async addSurvey(input: Omit<Survey, 'id' | 'createdAt'>): Promise<Survey | null> {
+    try {
+      // 1) Survey einfügen
+      const { data: surveyRow, error: sError } = await this.supabase.client
+        .from('surveys')
+        .insert({
+          title: input.title,
+          description: input.description ?? null,
+          category: input.category,
+          end_date: input.endDate ?? null,
+          status: input.status,
+        })
+        .select()
+        .single();
+
+      if (sError || !surveyRow) throw sError;
+
+      // 2) Questions einfügen
+      for (let qIndex = 0; qIndex < input.questions.length; qIndex++) {
+        const q = input.questions[qIndex];
+
+        const { data: questionRow, error: qError } = await this.supabase.client
+          .from('questions')
+          .insert({
+            survey_id: surveyRow.id,
+            text: q.text,
+            allow_multiple: q.allowMultiple,
+            position: qIndex,
+          })
+          .select()
+          .single();
+
+        if (qError || !questionRow) throw qError;
+
+        // 3) Answers einfügen
+        const answersToInsert = q.answers.map((a, aIndex) => ({
+          question_id: questionRow.id,
+          text: a.text,
+          votes: 0,
+          position: aIndex,
+        }));
+
+        const { error: aError } = await this.supabase.client
+          .from('answers')
+          .insert(answersToInsert);
+
+        if (aError) throw aError;
+      }
+
+      // 4) Alle Surveys neu laden
+      await this.loadSurveys();
+
+      // 5) Neue Survey zurückgeben
+      return this.getSurveyById(surveyRow.id) ?? null;
+    } catch (err: any) {
+      console.error('Error adding survey:', err);
+      this._error.set(err.message ?? 'Failed to add survey');
+      return null;
+    }
   }
 
-  // Umfrage aktualisieren (z.B. nach Vote)
-  updateSurvey(updated: Survey): void {
-    this._surveys.update(list =>
-      list.map(s => (s.id === updated.id ? updated : s))
-    );
-    this.saveToStorage();
+  // ===== STIMME ABGEBEN =====
+  async vote(surveyId: string, votes: { questionId: string; answerIds: string[] }[]): Promise<void> {
+    try {
+      // Alle gewählten Antworten um +1 erhöhen
+      for (const v of votes) {
+        for (const answerId of v.answerIds) {
+          // aktuellen Stand holen
+          const survey = this.getSurveyById(surveyId);
+          const answer = survey?.questions
+            .find(q => q.id === v.questionId)
+            ?.answers.find(a => a.id === answerId);
+
+          if (!answer) continue;
+
+          const { error } = await this.supabase.client
+            .from('answers')
+            .update({ votes: answer.votes + 1 })
+            .eq('id', answerId);
+
+          if (error) throw error;
+        }
+      }
+
+      // Lokal als "voted" merken (im Browser)
+      this.markAsVoted(surveyId);
+
+      // Daten neu laden
+      await this.loadSurveys();
+    } catch (err: any) {
+      console.error('Error voting:', err);
+      this._error.set(err.message ?? 'Failed to submit vote');
+    }
   }
 
-  // Stimme abgeben
-  vote(surveyId: string, votes: { questionId: string; answerIds: string[] }[]): void {
-    const survey = this.getSurveyById(surveyId);
-    if (!survey || survey.hasVoted) return;
+  // ===== "Hat schon gevotet?" - bleibt im LocalStorage =====
+  private readonly VOTED_KEY = 'poll-app-voted-surveys';
 
-    const updatedQuestions = survey.questions.map(q => {
-      const voteForThisQuestion = votes.find(v => v.questionId === q.id);
-      if (!voteForThisQuestion) return q;
-
-      const updatedAnswers = q.answers.map(a =>
-        voteForThisQuestion.answerIds.includes(a.id)
-          ? { ...a, votes: a.votes + 1 }
-          : a
-      );
-      return { ...q, answers: updatedAnswers };
-    });
-
-    this.updateSurvey({
-      ...survey,
-      questions: updatedQuestions,
-      hasVoted: true,
-    });
+  hasVoted(surveyId: string): boolean {
+    const list = this.getVotedList();
+    return list.includes(surveyId);
   }
 
-  // Prüfen ob Umfrage abgelaufen ist
+  private markAsVoted(surveyId: string): void {
+    const list = this.getVotedList();
+    if (!list.includes(surveyId)) {
+      list.push(surveyId);
+      localStorage.setItem(this.VOTED_KEY, JSON.stringify(list));
+    }
+  }
+
+  private getVotedList(): string[] {
+    try {
+      const data = localStorage.getItem(this.VOTED_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  // ===== HILFSFUNKTIONEN =====
   isExpired(survey: Survey): boolean {
     if (!survey.endDate) return false;
     return new Date(survey.endDate).getTime() < Date.now();
   }
 
-  // Verbleibende Tage berechnen
   daysRemaining(survey: Survey): number | null {
     if (!survey.endDate) return null;
     const diff = new Date(survey.endDate).getTime() - Date.now();
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   }
 
-  // Eindeutige ID generieren (Browser-Funktion)
   generateId(): string {
     return crypto.randomUUID();
-  }
-
-  // --- LocalStorage Helper ---
-
-private loadFromStorage(): Survey[] {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (data) {
-      return JSON.parse(data);
-    }
-    // Beim ersten Start: Mock-Daten laden und speichern
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(MOCK_SURVEYS));
-    return MOCK_SURVEYS;
-  } catch {
-    return [];
-  }
-}
-
-  private saveToStorage(): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this._surveys()));
   }
 }

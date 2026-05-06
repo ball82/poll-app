@@ -24,9 +24,9 @@ export interface Survey {
   title: string;
   description?: string;        // optional (Beschreibungstext)
   category: SurveyCategory;
-  endDate?: string;            // ISO-Datum, optional
+  endDate: string;            // ISO-Datum, optional
   createdAt: string;           // ISO-Datum
   questions: Question[];
   status: 'draft' | 'published';
-  hasVoted?: boolean;          // damit User nur 1x abstimmt
+
 }
