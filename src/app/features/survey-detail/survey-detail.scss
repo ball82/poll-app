@@ -10,9 +10,9 @@
 }
 
 .survey-card {
-  background-color: var(--color-surface);
+  background-color: #f3eff5;
   color: var(--color-text-dark);
-  border-radius: 8px 32px 8px 8px;
+  border-radius: 8px 48px 8px 8px;
   padding: 32px;
 
   &__header {
@@ -28,11 +28,12 @@
 
   &__status {
     display: inline-block;
-    padding: 4px 12px;
+    padding: 4px 14px;
     background-color: var(--color-accent);
+    color: var(--color-text-dark);
     border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 700;
   }
 
   &__close {
@@ -42,27 +43,35 @@
     height: 32px;
     border-radius: 6px;
     cursor: pointer;
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.08);
     color: var(--color-text-dark);
     font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.15);
+    }
   }
 
   &__info {
     display: flex;
     gap: 24px;
-    font-size: 14px;
+    font-size: 16px;
     margin-bottom: 16px;
+    opacity: 0.7;
   }
 
   &__title {
-    font-size: 36px;
-    line-height: 1.2;
+    font-size: 40px;
+    line-height: 1.15;
     color: var(--color-primary);
     margin-bottom: 16px;
   }
 
   &__description {
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.6;
   }
 
@@ -87,13 +96,15 @@
   &__title {
     font-size: 16px;
     font-weight: 700;
+    line-height: 1.4;
     margin-bottom: 4px;
+    font-family: 'Mulish', sans-serif;
   }
 
   &__hint {
-    font-size: 13px;
+    font-size: 16px;
     margin-bottom: 12px;
-    opacity: 0.7;
+    opacity: 0.6;
   }
 }
 
@@ -102,18 +113,22 @@
 }
 
 .answer {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 
   &__label {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: 10px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 16px;
 
     input {
-      margin-top: 2px;
+      margin-top: 3px;
+      width: 16px;
+      height: 16px;
       cursor: pointer;
+      accent-color: var(--color-primary);
+      flex-shrink: 0;
     }
 
     input:disabled {
@@ -123,6 +138,7 @@
 
   &__letter {
     font-weight: 700;
+    flex-shrink: 0;
   }
 }
 
@@ -131,7 +147,7 @@
   border: none;
   background-color: var(--color-accent);
   color: var(--color-text-dark);
-  font-weight: 600;
+  font-weight: 700;
   border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
@@ -141,19 +157,21 @@
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
   }
 }
 
 .info-text {
+  font-size: 16px;
   font-style: italic;
   color: var(--color-text-dark);
 }
 
 .results-pane {
-  background-color: transparent;
-  border-radius: 8px;
+  background-color: #35273a;
+  border-radius: 8px 48px 8px 8px;
+  overflow: hidden;
 }
 
 .not-found {
@@ -165,5 +183,49 @@
     text-decoration: none;
     margin-top: 16px;
     display: inline-block;
+  }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .survey-card {
+    border-radius: 8px 32px 8px 8px;
+
+    &__title {
+      font-size: 32px;
+    }
+  }
+
+  .results-pane {
+    border-radius: 8px 32px 8px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .survey-card {
+    padding: 20px;
+
+    &__title {
+      font-size: 26px;
+    }
+  }
+
+  .questions {
+    gap: 20px;
+  }
+}
+
+@media (max-width: 320px) {
+  .survey-card {
+    padding: 14px;
+    border-radius: 8px 20px 8px 8px;
+  }
+
+  .results-pane {
+    border-radius: 8px 20px 8px 8px;
+  }
+
+  .submit-btn {
+    width: 100%;
   }
 }

@@ -1,30 +1,35 @@
 .hero {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "text image"
+    "cta  image";
   align-items: center;
-  justify-content: space-between;
-  gap: 48px;
+  gap: 24px 48px;
   padding: 48px 0 96px;
 
   &__text {
-    flex: 1;
-    max-width: 700px;
+    grid-area: text;
+    max-width: 600px;
   }
 
   &__title {
+    font-size: 100px;
     line-height: 1.1;
     color: var(--color-primary);
     margin-bottom: 24px;
   }
 
   &__description {
-    font-family: 'Mulish', sans-serif;
     font-size: 24px;
     line-height: 1.5;
     color: var(--color-text-light);
-    margin-bottom: 32px;
   }
 
   &__cta {
+    grid-area: cta;
+    justify-self: start;
+    /* links ausrichten */
     display: inline-block;
     padding: 12px 28px;
     background-color: var(--color-accent);
@@ -38,8 +43,12 @@
     }
   }
 
+  &__image {
+    grid-area: image;
+  }
+
   &__image img {
-    width: 580px;
+    max-width: 630px;
     height: auto;
   }
 }
@@ -172,4 +181,135 @@
   text-align: center;
   padding: 48px;
   color: rgba(255, 255, 255, 0.5);
+}
+
+.ending-soon {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+@media (max-width: 1080px) {
+  .ending-soon {
+    /* Aus Grid wird ein horizontaler Flex-Slider */
+    display: flex;
+    overflow-x: auto;
+    gap: 16px;
+
+    /* Snap-Effekt: Karten rasten beim Scrollen ein */
+    scroll-snap-type: x mandatory;
+
+    /* Scrollbar verstecken */
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Jede Karte: feste Breite, snappt links ein */
+    app-survey-card {
+      flex: 0 0 80%;
+      max-width: 320px;
+      scroll-snap-align: start;
+    }
+  }
+
+  .hero__image img {
+    width: 400px;
+    height: 400px;
+  }
+}
+
+
+@media (max-width: 835px) {
+  .hero {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "text"
+      "image"
+      "cta";
+    text-align: center;
+    padding: 24px 0 48px;
+    gap: 24px;
+
+    &__text {
+      max-width: 100%;
+    }
+
+    &__title {
+      font-size: 64px;
+    }
+
+    &__description {
+      font-size: 20px;
+    }
+
+    &__image {
+      display: flex;
+      justify-content: center;
+    }
+
+    &__image img {
+      max-width: 220px;
+    }
+
+    &__cta {
+      justify-self: center;
+    }
+  }
+
+  /* Restliche Mobile-Styles bleiben wie sie sind */
+  .surveys-section {
+    &__title {
+      font-size: 36px;
+      margin-bottom: 32px;
+    }
+
+    &__subtitle {
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+  }
+
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .tabs {
+    justify-content: flex-start;
+  }
+
+  .category-dropdown {
+    align-self: flex-start;
+
+    &__menu {
+      right: auto;
+      left: 0;
+    }
+  }
+
+  .surveys-list {
+    grid-template-columns: 1fr;
+  }
+
+  .ending-soon {
+    display: flex;
+    overflow-x: auto;
+    gap: 16px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    app-survey-card {
+      flex: 0 0 80%;
+      max-width: 320px;
+      scroll-snap-align: start;
+    }
+  }
 }

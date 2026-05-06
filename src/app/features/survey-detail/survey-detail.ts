@@ -1,4 +1,5 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SurveyService } from '../../core/services/survey.service';
 import { SurveyResults } from '../../shared/components/survey-results/survey-results';
@@ -8,10 +9,19 @@ import { SurveyResults } from '../../shared/components/survey-results/survey-res
   templateUrl: './survey-detail.html',
   styleUrl: './survey-detail.scss',
 })
-export class SurveyDetail {
+export class SurveyDetail implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private surveyService = inject(SurveyService);
+  private document = inject(DOCUMENT);
+
+  ngOnInit(): void {
+    this.document.body.classList.add('page-light');
+  }
+
+  ngOnDestroy(): void {
+    this.document.body.classList.remove('page-light');
+  }
 
   // Survey-ID aus der URL holen (z.B. /survey/mock-1)
   private surveyId = this.route.snapshot.paramMap.get('id') ?? '';

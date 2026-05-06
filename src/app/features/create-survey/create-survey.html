@@ -1,154 +1,164 @@
-<div class="create-page">
-  <!-- Cancel Button oben rechts (außerhalb der Karte) -->
-  <button type="button" class="cancel-btn" (click)="cancel()">
-    Cancel <span>✕</span>
-  </button>
+<div class="create-outer">
+  <div class="create-card">
 
-  <form class="create-form" [formGroup]="form" (ngSubmit)="submit()">
-    <!-- Header der Karte -->
-    <div class="create-form__header">
-      <span class="create-form__status">Draft</span>
-      <h1 class="create-form__title">Create new survey</h1>
-    </div>
+    <!-- Mittlere Ebene: Header + Form-Container + Publish -->
+    <div class="create-card__middle">
 
-    <!-- Innere Karte mit Inhalten -->
-    <div class="create-form__inner">
-      <div class="form-grid">
-        <!-- LINKE SPALTE -->
-        <div class="form-col">
-          <!-- Survey name -->
-          <div class="field">
-            <div class="field__head">
-              <label for="title" class="field__label">Survey name</label>
-              <button type="button" class="field__clear" (click)="clearField('title')" aria-label="Clear">
-                🗑
-              </button>
-            </div>
-            <input id="title" type="text" formControlName="title" class="field__input" />
-            @if (form.get('title')?.touched && form.get('title')?.invalid) {
-            <p class="field__error">Survey name is required (min 3 characters).</p>
-            }
-          </div>
+      <!-- Top: Draft links, Cancel rechts -->
+      <div class="create-card__top">
+        <span class="create-card__status">Draft</span>
+        <button type="button" class="cancel-btn" (click)="cancel()">
+          Cancel <span>✕</span>
+        </button>
+      </div>
 
-          <!-- End date + Category nebeneinander -->
-          <div class="field-row">
+      <h1 class="create-card__title">Create new survey</h1>
+
+      <!-- Innerste Ebene: Das eigentliche Formular -->
+      <form class="form-inner" [formGroup]="form" (ngSubmit)="submit()">
+        <div class="form-grid">
+          <!-- LINKE SPALTE -->
+          <div class="form-col">
+            <!-- Survey name -->
             <div class="field">
               <div class="field__head">
-                <label for="endDate" class="field__label">
-                  Set end date <span class="field__optional">(optional)</span>
-                </label>
-                <button type="button" class="field__clear" (click)="clearField('endDate')" aria-label="Clear">
+                <label for="title" class="field__label">Survey name</label>
+                <button type="button" class="field__clear" (click)="clearField('title')" aria-label="Clear">
                   🗑
                 </button>
               </div>
-              <input id="endDate" type="date" formControlName="endDate" class="field__input" />
-            </div>
-
-            <div class="field">
-              <label for="category" class="field__label">
-                Choose category <span class="field__arrow">▾</span>
-              </label>
-              <select id="category" formControlName="category" class="field__input">
-                <option value="" disabled>Select…</option>
-                @for (cat of categories; track cat) {
-                <option [value]="cat">{{ cat }}</option>
-                }
-              </select>
-              @if (form.get('category')?.touched && form.get('category')?.invalid) {
-              <p class="field__error">Please choose a category.</p>
+              <input id="title" type="text" formControlName="title" class="field__input" />
+              @if (form.get('title')?.touched && form.get('title')?.invalid) {
+              <p class="field__error">Survey name is required (min 3 characters).</p>
               }
             </div>
-          </div>
 
-          <!-- HIER kommt in Etappe B die Fragen-Sektion -->
-          <!-- Fragen-Liste (linke Spalte) -->
-          <div class="questions-section" formArrayName="questions">
-            @for (question of questions.controls; track $index; let qIndex = $index) {
-            <div class="question-block" [formGroupName]="qIndex">
-              <div class="question-block__head">
-                <label class="question-block__label">
-                  {{ qIndex + 1 }}. Question
-                </label>
-                <button type="button" class="field__clear" (click)="removeQuestion(qIndex)"
-                  aria-label="Remove question">
-                  🗑
-                </button>
-              </div>
-
-              <input type="text" formControlName="text" class="field__input"
-                placeholder="Which date would work best for you?" />
-              @if (question.get('text')?.touched && question.get('text')?.invalid) {
-              <p class="field__error">Question text is required.</p>
-              }
-
-              <!-- Antworten -->
-              <div class="answers-section__head">
-                <span class="field__label">Answers</span>
-                <label class="multi-toggle">
-                  <input type="checkbox" formControlName="allowMultiple" />
-                  Allow multiple answers.
-                </label>
-              </div>
-
-              <div class="answers-section" formArrayName="answers">
-                @for (answer of getAnswers(qIndex).controls; track $index; let aIndex = $index) {
-                <div class="answer-row" [formGroupName]="aIndex">
-                  <span class="answer-row__letter">
-                    {{ ['A', 'B', 'C', 'D', 'E', 'F'][aIndex] }}.
-                  </span>
-                  <input type="text" formControlName="text" class="field__input answer-row__input" />
-                  <button type="button" class="field__clear" (click)="removeAnswer(qIndex, aIndex)"
-                    [disabled]="getAnswers(qIndex).length <= 2" aria-label="Remove answer">
+            <!-- End date + Category -->
+            <div class="field-row">
+              <div class="field">
+                <div class="field__head">
+                  <label for="endDate" class="field__label">
+                    Set end date <span class="field__optional">(optional)</span>
+                  </label>
+                  <button type="button" class="field__clear" (click)="clearField('endDate')" aria-label="Clear">
                     🗑
                   </button>
                 </div>
+                <input id="endDate" type="date" formControlName="endDate" class="field__input" />
+              </div>
+
+              <div class="field">
+                <label for="category" class="field__label">
+                  Choose category <span class="field__arrow">▾</span>
+                </label>
+                <select id="category" formControlName="category" class="field__input">
+                  <option value="" disabled>Select…</option>
+                  @for (cat of categories; track cat) {
+                  <option [value]="cat">{{ cat }}</option>
+                  }
+                </select>
+                @if (form.get('category')?.touched && form.get('category')?.invalid) {
+                <p class="field__error">Please choose a category.</p>
+                }
+              </div>
+            </div>
+
+            <!-- Fragen -->
+            <div class="questions-section" formArrayName="questions">
+              @for (question of questions.controls; track $index; let qIndex = $index) {
+              <div class="question-block" [formGroupName]="qIndex">
+                <div class="question-block__head">
+                  <label class="question-block__label">
+                    {{ qIndex + 1 }}. Question
+                  </label>
+                  <button type="button" class="field__clear" (click)="removeQuestion(qIndex)"
+                    aria-label="Remove question">
+                    🗑
+                  </button>
+                </div>
+
+                <input type="text" formControlName="text" class="field__input"
+                  placeholder="Which date would work best for you?" />
+                @if (question.get('text')?.touched && question.get('text')?.invalid) {
+                <p class="field__error">Question text is required.</p>
                 }
 
-                @if (getAnswers(qIndex).length < 6) { <button type="button" class="add-answer-btn"
-                  (click)="addAnswer(qIndex)">
-                  Add answer ⊕
+                <div class="answers-section">
+                  <div class="answers-section__head">
+                    <span class="field__label">Answers</span>
+                    <label class="multi-toggle">
+                      <input type="checkbox" formControlName="allowMultiple" />
+                      Allow multiple answers.
+                    </label>
+                  </div>
+
+                  <div formArrayName="answers">
+                    @for (answer of getAnswers(qIndex).controls; track $index; let aIndex = $index) {
+                    <div class="answer-row" [formGroupName]="aIndex">
+                      <span class="answer-row__letter">
+                        {{ ['A', 'B', 'C', 'D', 'E', 'F'][aIndex] }}.
+                      </span>
+                      <input type="text" formControlName="text" class="field__input answer-row__input" />
+                      <button type="button" class="field__clear" (click)="removeAnswer(qIndex, aIndex)"
+                        [disabled]="getAnswers(qIndex).length <= 2" aria-label="Remove answer">
+                        🗑
+                      </button>
+                    </div>
+                    }
+                  </div>
+
+                  @if (getAnswers(qIndex).length < 6) {
+                  <button type="button" class="add-answer-btn" (click)="addAnswer(qIndex)">
+                    Add answer ⊕
                   </button>
                   } @else {
                   <p class="hint-text">You can add up to 6 answer fields.</p>
                   }
+                </div>
               </div>
+              }
             </div>
-            }
-          </div>
-        </div>
 
-        <!-- RECHTE SPALTE -->
-        <div class="form-col">
-          <div class="field">
-            <div class="field__head">
-              <label for="description" class="field__label">
-                Describing text <span class="field__optional">(optional)</span>
-              </label>
-              <button type="button" class="field__clear" (click)="clearField('description')" aria-label="Clear">
-                🗑
-              </button>
-            </div>
-            <textarea id="description" formControlName="description" class="field__input field__input--textarea"
-              rows="5"></textarea>
+            <!-- Add next question Button: links unten in der linken Spalte -->
+            <button type="button" class="add-question-btn" (click)="addQuestion()">
+              Add next question ⊕
+            </button>
           </div>
 
-          <button type="button" class="add-question-btn" (click)="addQuestion()">
-            Add next question ⊕
-          </button>
-
-
-
-
-
+          <!-- RECHTE SPALTE: nur Description -->
+          <div class="form-col">
+            <div class="field">
+              <div class="field__head">
+                <label for="description" class="field__label">
+                  Describing text <span class="field__optional">(optional)</span>
+                </label>
+                <button type="button" class="field__clear" (click)="clearField('description')" aria-label="Clear">
+                  🗑
+                </button>
+              </div>
+              <textarea id="description" formControlName="description" class="field__input field__input--textarea"
+                rows="5"></textarea>
+            </div>
+          </div>
         </div>
+      </form>
+
+      <!-- Publish unten rechts -->
+      <div class="publish-row">
+        <button type="button" class="publish-btn" (click)="submit()">
+          Publish ✓
+        </button>
       </div>
-    </div>
-  </form>
 
-  <!-- Publish Button unten rechts (außerhalb der Karte) -->
-  <div class="publish-row">
-    <button type="button" class="publish-btn" (click)="submit()">
-      Publish ✓
-    </button>
+    </div>
   </div>
 </div>
+
+@if (showSuccessOverlay()) {
+<div class="overlay">
+  <div class="overlay__card">
+    <div class="overlay__icon">✓</div>
+    <h2 class="overlay__title">Your survey is now published!</h2>
+  </div>
+</div>
+}

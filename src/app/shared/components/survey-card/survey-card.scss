@@ -36,26 +36,35 @@
     font-weight: 600;
   }
 
-  /* List-Variante (kleine Zeile in der Liste unten) */
-  &--list {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    background-color: rgba(255, 255, 255, 0.05);
-    color: var(--color-text-light);
-    min-height: auto;
-    padding: 16px 24px;
-    border-radius: 12px;
+/* List-Variante (Karten in der Übersichtsliste) */
+&--list {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--color-text-light);
+  border-radius: 8px 32px 8px 8px;
+  padding: 20px 24px;
+  min-height: 140px;
 
-    .card__category {
-      color: var(--color-primary);
-      margin-bottom: 4px;
-    }
-
-    .card__title {
-      font-size: 18px;
-      flex: 1;
-      margin: 0 16px;
-    }
+  .card__category {
+    color: var(--color-primary);
+    font-size: 14px;
+    margin-bottom: 12px;
   }
+
+  .card__title {
+    color: var(--color-text-light);
+    font-size: 20px;
+    font-weight: 700;
+    flex: 1;
+    margin-bottom: 16px;
+  }
+
+  .card__badge {
+    align-self: flex-end;     /* Badge nach unten rechts */
+    background-color: var(--color-accent);
+    color: var(--color-text-dark);
+  }
+}
 }
