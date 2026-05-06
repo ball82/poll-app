@@ -92,7 +92,8 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  align-items: end;
+  align-items: start;
+  margin-bottom: 20px;
 }
 
 /* ===== Felder ===== */
@@ -100,6 +101,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  
 
   &__head {
     display: flex;
@@ -150,7 +152,6 @@
   }
 
   &__input {
-    margin-bottom: 12px;
     padding: 10px 14px;
     border: none;
     border-radius: 8px;
@@ -181,17 +182,33 @@
   }
 }
 
-/* Custom Select Pfeil */
-select.field__input {
+/* Category Select als Button-Style */
+select.field__input--select {
   appearance: none;
   -webkit-appearance: none;
-  background-image:
-    linear-gradient(45deg, transparent 50%, var(--color-text-dark) 50%),
-    linear-gradient(135deg, var(--color-text-dark) 50%, transparent 50%);
-  background-position: calc(100% - 18px) center, calc(100% - 12px) center;
-  background-size: 6px 6px;
+  background-color: #72524a;
+  color: var(--color-text-light);
+  font-weight: 600;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ffffff' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-position: calc(100% - 14px) center;
   background-repeat: no-repeat;
   padding-right: 36px;
+  border-radius: 8px;
+
+  option {
+    background-color: #35273a;
+    color: var(--color-text-light);
+    font-weight: 400;
+  }
+
+  &:focus {
+    outline: 2px solid var(--color-primary);
+  }
+
+  &:hover {
+    background-color: #856158;
+  }
 }
 
 /* ===== Fragen ===== */
@@ -253,6 +270,7 @@ select.field__input {
   grid-template-columns: 24px 1fr 32px;
   align-items: start;
   gap: 10px;
+  margin-bottom: 20px;
 
   &__letter {
     font-weight: 700;
