@@ -116,33 +116,42 @@ export class CreateSurvey {
       return;
     }
 
-    const formValue = this.form.value as SurveyFormValue;
+    const created = await this.surveyService.addSurvey(this.buildSurveyInput());
+    if (created) this.showSuccess(created.id);
+  }
 
-    const newSurveyInput: SurveyInput = {
+  private buildSurveyInput(): SurveyInput {
+    const formValue = this.form.value as SurveyFormValue;
+    return {
       title: formValue.title.trim(),
       description: formValue.description?.trim() || undefined,
       category: formValue.category as SurveyCategory,
-      endDate: formValue.endDate ? new Date(formValue.endDate).toISOString() : undefined,
+      endDate: this.toIsoDate(formValue.endDate),
       status: 'published',
-      questions: formValue.questions.map(q => ({
-        text: q.text.trim(),
-        allowMultiple: q.allowMultiple,
-        answers: q.answers.map(a => ({ text: a.text.trim() })),
-      })),
+      questions: this.buildQuestions(formValue.questions),
     };
+  }
 
-    const created = await this.surveyService.addSurvey(newSurveyInput);
+  private toIsoDate(date: string): string | undefined {
+    return date ? new Date(date).toISOString() : undefined;
+  }
 
-    if (!created) {
-      return;
-    }
+  private buildQuestions(questions: QuestionValue[]): SurveyInput['questions'] {
+    return questions.map(question => ({
+      text: question.text.trim(),
+      allowMultiple: question.allowMultiple,
+      answers: question.answers.map(answer => ({ text: answer.text.trim() })),
+    }));
+  }
 
+  private showSuccess(surveyId: string): void {
     this.showSuccessOverlay.set(true);
+    setTimeout(() => this.openCreatedSurvey(surveyId), 1500);
+  }
 
-    setTimeout(() => {
-      this.showSuccessOverlay.set(false);
-      this.router.navigate(['/survey', created.id]);
-    }, 1500);
+  private openCreatedSurvey(surveyId: string): void {
+    this.showSuccessOverlay.set(false);
+    this.router.navigate(['/survey', surveyId]);
   }
 
   cancel(): void {

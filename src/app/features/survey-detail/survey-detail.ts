@@ -78,24 +78,32 @@ export class SurveyDetail implements OnInit, OnDestroy {
 
   toggleAnswer(questionId: string, answerId: string, allowMultiple: boolean): void {
     if (this.hasVoted() || this.isExpired()) return;
+    this.selectedAnswers.update(map =>
+      this.nextSelectedAnswerMap(map, questionId, answerId, allowMultiple)
+    );
+  }
 
-    this.selectedAnswers.update(map => {
-      const newMap = new Map(map);
-      const set = newMap.get(questionId) ?? new Set<string>();
+  private nextSelectedAnswerMap(
+    map: Map<string, Set<string>>,
+    questionId: string,
+    answerId: string,
+    allowMultiple: boolean
+  ): Map<string, Set<string>> {
+    const newMap = new Map(map);
+    newMap.set(questionId, this.nextAnswerSet(map, questionId, answerId, allowMultiple));
+    return newMap;
+  }
 
-      if (allowMultiple) {
-        if (set.has(answerId)) {
-          set.delete(answerId);
-        } else {
-          set.add(answerId);
-        }
-      } else {
-        set.clear();
-        set.add(answerId);
-      }
-      newMap.set(questionId, set);
-      return newMap;
-    });
+  private nextAnswerSet(
+    map: Map<string, Set<string>>,
+    questionId: string,
+    answerId: string,
+    allowMultiple: boolean
+  ): Set<string> {
+    const set = new Set(map.get(questionId) ?? []);
+    if (!allowMultiple) return new Set([answerId]);
+    set.has(answerId) ? set.delete(answerId) : set.add(answerId);
+    return set;
   }
 
   isSelected(questionId: string, answerId: string): boolean {
