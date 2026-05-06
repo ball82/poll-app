@@ -8,7 +8,17 @@ import {
   Validators,
 } from '@angular/forms';
 import { SurveyService } from '../../core/services/survey.service';
-import { Survey, SurveyCategory } from '../../core/models/survey.model';
+import { SurveyCategory, SurveyInput } from '../../core/models/survey.model';
+
+type AnswerValue = { text: string };
+type QuestionValue = { text: string; allowMultiple: boolean; answers: AnswerValue[] };
+type SurveyFormValue = {
+  title: string;
+  description: string;
+  category: string;
+  endDate: string;
+  questions: QuestionValue[];
+};
 
 @Component({
   selector: 'app-create-survey',
@@ -21,7 +31,6 @@ export class CreateSurvey {
   private surveyService = inject(SurveyService);
   private router = inject(Router);
 
-  // Bestätigungs-Overlay nach Publish
   showSuccessOverlay = signal(false);
 
   readonly categories: SurveyCategory[] = [
@@ -33,20 +42,18 @@ export class CreateSurvey {
     'Technology & Innovation',
   ];
 
-  // Heutiges Datum als YYYY-MM-DD für das min-Attribut
+  readonly answerLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
+
   readonly minDate = new Date().toISOString().split('T')[0];
 
-  // Hauptformular
-  // Pflichtfelder: title, category, mind. 1 Frage mit 2 Antworten
-  form: FormGroup = this.fb.group({
+  readonly form: FormGroup = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(3)]],
     category: ['', Validators.required],
-    endDate: ['', Validators.required],         // optional
-    description: [''],     // optional
+    endDate: [''],
+    description: [''],
     questions: this.fb.array([this.createQuestion()]),
   });
 
-  // Eine neue Frage erzeugen (mit 2 Antwort-Feldern als Default)
   private createQuestion(): FormGroup {
     return this.fb.group({
       text: ['', Validators.required],
@@ -55,33 +62,27 @@ export class CreateSurvey {
     });
   }
 
-  // Eine neue Antwort erzeugen
   private createAnswer(): FormGroup {
     return this.fb.group({
       text: ['', Validators.required],
     });
   }
 
-  // Getter für einfacheren Template-Zugriff auf das FormArray
   get questions(): FormArray {
     return this.form.get('questions') as FormArray;
   }
 
-  // Antworten einer bestimmten Frage holen
   getAnswers(questionIndex: number): FormArray {
     return this.questions.at(questionIndex).get('answers') as FormArray;
   }
 
-  // Fragen-Aktionen
   addQuestion(): void {
     this.questions.push(this.createQuestion());
   }
 
   removeQuestion(index: number): void {
     if (index === 0) {
-      // Erste Frage: nur Inhalt leeren, nicht löschen (User Story 3-Logik)
       this.questions.at(0).reset({ allowMultiple: false });
-      // Antworten zurücksetzen auf 2 leere
       const answers = this.getAnswers(0);
       while (answers.length > 0) answers.removeAt(0);
       answers.push(this.createAnswer());
@@ -91,7 +92,6 @@ export class CreateSurvey {
     this.questions.removeAt(index);
   }
 
-  // Antwort-Aktionen (max. 6 Antworten pro Frage – steht im Figma)
   addAnswer(questionIndex: number): void {
     const answers = this.getAnswers(questionIndex);
     if (answers.length < 6) {
@@ -101,59 +101,49 @@ export class CreateSurvey {
 
   removeAnswer(questionIndex: number, answerIndex: number): void {
     const answers = this.getAnswers(questionIndex);
-    // Mindestens 2 Antworten müssen bleiben
     if (answers.length > 2) {
       answers.removeAt(answerIndex);
     }
   }
 
-  // Felder einzeln zurücksetzen (Mülleimer-Icons im Header-Bereich)
   clearField(controlName: string): void {
     this.form.get(controlName)?.reset('');
   }
 
   async submit(): Promise<void> {
-  if (this.form.invalid) {
-    this.form.markAllAsTouched();
-    return;
-  }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
-  const v = this.form.value;
+    const formValue = this.form.value as SurveyFormValue;
 
-  // ID wird in der Datenbank generiert, deshalb hier nicht mehr nötig
-  const newSurveyInput = {
-    title: v.title!.trim(),
-    description: v.description?.trim() || undefined,
-    category: v.category as SurveyCategory,
-    endDate: new Date(v.endDate!).toISOString(),
-    status: 'published' as const,
-    questions: v.questions!.map((q: any) => ({
-      id: this.surveyService.generateId(),
-      text: q.text.trim(),
-      allowMultiple: q.allowMultiple,
-      answers: q.answers.map((a: any) => ({
-        id: this.surveyService.generateId(),
-        text: a.text.trim(),
-        votes: 0,
+    const newSurveyInput: SurveyInput = {
+      title: formValue.title.trim(),
+      description: formValue.description?.trim() || undefined,
+      category: formValue.category as SurveyCategory,
+      endDate: formValue.endDate ? new Date(formValue.endDate).toISOString() : undefined,
+      status: 'published',
+      questions: formValue.questions.map(q => ({
+        text: q.text.trim(),
+        allowMultiple: q.allowMultiple,
+        answers: q.answers.map(a => ({ text: a.text.trim() })),
       })),
-    })),
-  };
+    };
 
-  const created = await this.surveyService.addSurvey(newSurveyInput);
+    const created = await this.surveyService.addSurvey(newSurveyInput);
 
-  if (!created) {
-    // Fehler beim Speichern
-    return;
+    if (!created) {
+      return;
+    }
+
+    this.showSuccessOverlay.set(true);
+
+    setTimeout(() => {
+      this.showSuccessOverlay.set(false);
+      this.router.navigate(['/survey', created.id]);
+    }, 1500);
   }
-
-  this.showSuccessOverlay.set(true);
-
-  setTimeout(() => {
-    this.showSuccessOverlay.set(false);
-    this.router.navigate(['/survey', created.id]);
-  }, 1500);
-}
-
 
   cancel(): void {
     this.router.navigate(['/home']);

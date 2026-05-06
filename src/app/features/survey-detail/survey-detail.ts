@@ -3,6 +3,7 @@ import { DOCUMENT } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SurveyService } from '../../core/services/survey.service';
 import { SurveyResults } from '../../shared/components/survey-results/survey-results';
+
 @Component({
   selector: 'app-survey-detail',
   imports: [RouterLink, SurveyResults],
@@ -15,13 +16,12 @@ export class SurveyDetail implements OnInit, OnDestroy {
   private surveyService = inject(SurveyService);
   private document = inject(DOCUMENT);
 
-
   constructor() {
-  // Falls die Surveys noch nicht geladen sind, jetzt laden
-  if (this.surveyService.surveys().length === 0) {
-    this.surveyService.loadSurveys();
+    if (this.surveyService.surveys().length === 0) {
+      this.surveyService.loadSurveys();
+    }
   }
-}
+
   ngOnInit(): void {
     this.document.body.classList.add('page-light');
   }
@@ -30,32 +30,27 @@ export class SurveyDetail implements OnInit, OnDestroy {
     this.document.body.classList.remove('page-light');
   }
 
-  // Survey-ID aus der URL holen (z.B. /survey/mock-1)
-  private surveyId = this.route.snapshot.paramMap.get('id') ?? '';
+  readonly answerLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
 
-  // Die Umfrage als Computed (reagiert auf Service-Updates)
-  survey = computed(() => this.surveyService.getSurveyById(this.surveyId));
+  private readonly surveyId = this.route.snapshot.paramMap.get('id') ?? '';
 
-  // Welche Antworten der User pro Frage gewählt hat
-  // Map: questionId -> Set von answerIds
-  selectedAnswers = signal<Map<string, Set<string>>>(new Map());
+  readonly survey = computed(() => this.surveyService.getSurveyById(this.surveyId));
 
-  // Ergebnisse anzeigen ja/nein (nach Vote oder über Toggle)
-  showResults = signal(false);
+  readonly selectedAnswers = signal<Map<string, Set<string>>>(new Map());
 
-  // Ist die Umfrage abgelaufen?
-  isExpired = computed(() => {
+  readonly showResults = signal(false);
+
+  readonly isExpired = computed(() => {
     const s = this.survey();
     return s ? this.surveyService.isExpired(s) : false;
   });
 
-  hasVoted = computed(() => {
+  readonly hasVoted = computed(() => {
     const s = this.survey();
     return s ? this.surveyService.hasVoted(s.id) : false;
   });
 
-  // Verbleibende Tage Label
-  endsInLabel = computed(() => {
+  readonly endsInLabel = computed(() => {
     const s = this.survey();
     if (!s?.endDate) return null;
     const days = this.surveyService.daysRemaining(s);
@@ -65,15 +60,22 @@ export class SurveyDetail implements OnInit, OnDestroy {
     return `Ends in ${days} Days`;
   });
 
-  // End-Datum formatiert (z.B. "01.09.2025")
-  endDateFormatted = computed(() => {
+  readonly endDateFormatted = computed(() => {
     const s = this.survey();
     if (!s?.endDate) return null;
-    const d = new Date(s.endDate);
-    return d.toLocaleDateString('de-DE');
+    return new Date(s.endDate).toLocaleDateString('de-DE');
   });
 
-  // Antwort an-/abwählen
+  readonly canSubmit = computed(() => {
+    if (this.hasVoted() || this.isExpired()) return false;
+    const s = this.survey();
+    if (!s) return false;
+    return s.questions.every(q => {
+      const set = this.selectedAnswers().get(q.id);
+      return set && set.size > 0;
+    });
+  });
+
   toggleAnswer(questionId: string, answerId: string, allowMultiple: boolean): void {
     if (this.hasVoted() || this.isExpired()) return;
 
@@ -88,7 +90,6 @@ export class SurveyDetail implements OnInit, OnDestroy {
           set.add(answerId);
         }
       } else {
-        // Bei Single-Choice: nur eine Antwort
         set.clear();
         set.add(answerId);
       }
@@ -97,37 +98,24 @@ export class SurveyDetail implements OnInit, OnDestroy {
     });
   }
 
-  // Prüfen ob Antwort gewählt ist (fürs Template)
   isSelected(questionId: string, answerId: string): boolean {
     return this.selectedAnswers().get(questionId)?.has(answerId) ?? false;
   }
 
-  // Stimme abgeben
- async submitVote(): Promise<void> {
-  const s = this.survey();
-  if (!s) return;
-
-  const votes = Array.from(this.selectedAnswers().entries()).map(
-    ([questionId, set]) => ({
-      questionId,
-      answerIds: Array.from(set),
-    })
-  );
-
-  await this.surveyService.vote(s.id, votes);
-  this.showResults.set(true);
-}
-  // Mindestens eine Antwort gewählt? (sonst Submit deaktivieren)
-  canSubmit = computed(() => {
-    if (this.hasVoted() || this.isExpired()) return false;
+  async submitVote(): Promise<void> {
     const s = this.survey();
-    if (!s) return false;
-    // Jede Frage muss mindestens 1 Antwort haben
-    return s.questions.every(q => {
-      const set = this.selectedAnswers().get(q.id);
-      return set && set.size > 0;
-    });
-  });
+    if (!s) return;
+
+    const votes = Array.from(this.selectedAnswers().entries()).map(
+      ([questionId, set]) => ({
+        questionId,
+        answerIds: Array.from(set),
+      })
+    );
+
+    await this.surveyService.vote(s.id, votes);
+    this.showResults.set(true);
+  }
 
   toggleResults(): void {
     this.showResults.update(v => !v);

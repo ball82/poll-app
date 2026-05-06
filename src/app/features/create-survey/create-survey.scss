@@ -1,10 +1,9 @@
-/* ===== Ebene 1: äußere helle Hülle ===== */
 .create-outer {
   position: fixed;
   inset: 0;
   width: 100vw;
   height: 100vh;
-  background-color: #fefcff;
+  background-color: var(--color-bg-light);
   z-index: 1000;
   overflow-y: auto;
   display: flex;
@@ -15,9 +14,8 @@
   box-sizing: border-box;
 }
 
-/* ===== Ebene 2: mittlere Card ===== */
 .create-card {
-  background-color: #35273a;
+  background-color: var(--color-bg);
   border-radius: 8px 48px 8px 8px;
   padding: 32px;
   color: var(--color-text-light);
@@ -49,17 +47,15 @@
   }
 }
 
-/* ===== Ebene 3: inneres Formular ===== */
 .form-inner {
-  background-color: #433349;
+  background-color: var(--color-bg-elevated);
   border-radius: 8px 32px 8px 8px;
   padding: 32px;
 }
 
-/* Cancel Button (rechts oben in der mittleren Ebene) */
 .cancel-btn {
   padding: 8px 16px;
-  background-color: #72524a;
+  background-color: var(--color-btn-secondary);
   color: var(--color-text-light);
   border: none;
   border-radius: 8px;
@@ -71,11 +67,10 @@
   font-weight: 600;
 
   &:hover {
-    background-color: #856158;
+    background-color: var(--color-btn-secondary-hover);
   }
 }
 
-/* Grid */
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -96,7 +91,6 @@
   margin-bottom: 20px;
 }
 
-/* ===== Felder ===== */
 .field {
   display: flex;
   flex-direction: column;
@@ -116,7 +110,7 @@
   }
 
   &__required {
-    color: #ff8a8a;
+    color: var(--color-error);
     font-weight: 700;
     margin-left: 2px;
   }
@@ -171,22 +165,21 @@
     }
 
     &--error {
-      outline: 2px solid #ff8a8a;
+      outline: 2px solid var(--color-error);
     }
   }
 
   &__error {
-    color: #ff8a8a;
+    color: var(--color-error);
     font-size: 16px;
     margin-top: -8px;
   }
 }
 
-/* Category Select als Button-Style */
 select.field__input--select {
   appearance: none;
   -webkit-appearance: none;
-  background-color: #72524a;
+  background-color: var(--color-btn-secondary);
   color: var(--color-text-light);
   font-weight: 600;
   cursor: pointer;
@@ -197,7 +190,7 @@ select.field__input--select {
   border-radius: 8px;
 
   option {
-    background-color: #35273a;
+    background-color: var(--color-bg);
     color: var(--color-text-light);
     font-weight: 400;
   }
@@ -207,11 +200,10 @@ select.field__input--select {
   }
 
   &:hover {
-    background-color: #856158;
+    background-color: var(--color-btn-secondary-hover);
   }
 }
 
-/* ===== Fragen ===== */
 .questions-section {
   display: flex;
   flex-direction: column;
@@ -285,7 +277,6 @@ select.field__input--select {
   }
 }
 
-/* "Add answer" Text-Link */
 .add-answer-btn {
   align-self: flex-start;
   background: transparent;
@@ -312,12 +303,11 @@ select.field__input--select {
   margin-top: 4px;
 }
 
-/* "Add next question" Button (braunrot wie Cancel) */
 .add-question-btn {
   align-self: flex-start;
   margin-top: 16px;
   padding: 10px 20px;
-  background-color: #72524a;
+  background-color: var(--color-btn-secondary);
   color: var(--color-text-light);
   border: none;
   border-radius: 8px;
@@ -329,11 +319,10 @@ select.field__input--select {
   gap: 8px;
 
   &:hover {
-    background-color: #856158;
+    background-color: var(--color-btn-secondary-hover);
   }
 }
 
-/* ===== Publish ===== */
 .publish-row {
   display: flex;
   justify-content: flex-end;
@@ -355,7 +344,6 @@ select.field__input--select {
   }
 }
 
-/* ===== Success Overlay ===== */
 .overlay {
   position: fixed;
   inset: 0;
@@ -407,7 +395,6 @@ select.field__input--select {
   to { opacity: 1; transform: scale(1); }
 }
 
-/* ===== Responsive ===== */
 @media (max-width: 768px) {
   .create-outer {
     padding: 24px 16px;

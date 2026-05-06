@@ -10,7 +10,7 @@
 }
 
 .survey-card {
-  background-color: #f3eff5;
+  background-color: var(--color-surface-detail);
   color: var(--color-text-dark);
   border-radius: 8px 48px 8px 8px;
   padding: 32px;
@@ -169,7 +169,7 @@
 }
 
 .results-pane {
-  background-color: #35273a;
+  background-color: var(--color-bg);
   border-radius: 8px 48px 8px 8px;
   overflow: hidden;
 }

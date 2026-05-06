@@ -5,7 +5,7 @@ import { environment } from '../../../environments/environment';
 @Injectable({
   providedIn: 'root',
 })
-export class Supabase {
+export class SupabaseService {
   readonly client: SupabaseClient = createClient(
     environment.supabaseUrl,
     environment.supabaseKey

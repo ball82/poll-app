@@ -10,16 +10,12 @@ import { SurveyService } from '../../../core/services/survey.service';
   styleUrl: './survey-card.scss',
 })
 export class SurveyCard {
-  // Input: Die Karte erwartet eine Survey von außen
-  survey = input.required<Survey>();
-
-  // Variante: 'highlight' (große Karte) oder 'list' (kleine Zeile)
-  variant = input<'highlight' | 'list'>('highlight');
+  readonly survey = input.required<Survey>();
+  readonly variant = input<'highlight' | 'list'>('highlight');
 
   private surveyService = inject(SurveyService);
 
-  // Berechnet "Ends in X Days"
-  endsInLabel = computed(() => {
+  readonly endsInLabel = computed(() => {
     const days = this.surveyService.daysRemaining(this.survey());
     if (days === null) return null;
     if (days === 0) return 'Ends today';

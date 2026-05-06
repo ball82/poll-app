@@ -1,25 +1,29 @@
-/* You can add global styles to this file, and also import other style files */
-
 @font-face {
   font-family: 'Nerko One';
   src: url('/assets/fonts/NerkoOne-Regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
+
 :root {
-  --color-bg: #35273b;        /* dunkles Lila im Hintergrund */
-  --color-surface: #faf5fe;   /* helle Karten */
-  --color-primary: #ffb770;   /* Orange für Buttons */
-  --color-accent: #fee9d4;    /* helleres Orange */
-  --color-text-light: #FFFFFF;
-  --color-text-dark: #2D1B3D;
+  --color-bg: #35273b;
+  --color-bg-elevated: #433349;
+  --color-bg-light: #fefcff;
+  --color-surface: #faf5fe;
+  --color-surface-detail: #f3eff5;
+  --color-primary: #ffb770;
+  --color-accent: #fee9d4;
+  --color-btn-secondary: #72524a;
+  --color-btn-secondary-hover: #856158;
+  --color-error: #ff8a8a;
+  --color-text-light: #ffffff;
+  --color-text-dark: #2d1b3d;
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  
 }
 
 h1 {
@@ -53,5 +57,5 @@ body {
 }
 
 body.page-light {
-  background-color: #fefcff;
+  background-color: var(--color-bg-light);
 }

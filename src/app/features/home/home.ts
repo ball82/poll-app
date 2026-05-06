@@ -15,12 +15,10 @@ type Tab = 'active' | 'past';
 export class Home {
   private surveyService = inject(SurveyService);
 
-  // State (mit Signals)
-  selectedTab = signal<Tab>('active');
-  selectedCategory = signal<SurveyCategory | 'All'>('All');
-  isCategoryDropdownOpen = signal(false);
+  readonly selectedTab = signal<Tab>('active');
+  readonly selectedCategory = signal<SurveyCategory | 'All'>('All');
+  readonly isCategoryDropdownOpen = signal(false);
 
-  // Verfügbare Kategorien für das Dropdown
   readonly categories: (SurveyCategory | 'All')[] = [
     'All',
     'Team activities',
@@ -31,11 +29,9 @@ export class Home {
     'Technology & Innovation',
   ];
 
-  // "Ending soon" Karten oben
-  endingSoon = this.surveyService.endingSoonSurveys;
+  readonly endingSoon = this.surveyService.endingSoonSurveys;
 
-  // Gefilterte Liste je nach Tab + Kategorie
-  filteredSurveys = computed(() => {
+  readonly filteredSurveys = computed(() => {
     const baseList =
       this.selectedTab() === 'active'
         ? this.surveyService.activeSurveys()
@@ -46,18 +42,15 @@ export class Home {
     return baseList.filter(s => s.category === cat);
   });
 
-  // Tab wechseln
   setTab(tab: Tab): void {
     this.selectedTab.set(tab);
   }
 
-  // Kategorie wählen
   selectCategory(cat: SurveyCategory | 'All'): void {
     this.selectedCategory.set(cat);
     this.isCategoryDropdownOpen.set(false);
   }
 
-  // Dropdown öffnen/schließen
   toggleCategoryDropdown(): void {
     this.isCategoryDropdownOpen.update(open => !open);
   }

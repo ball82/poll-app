@@ -22,11 +22,23 @@ export interface Question {
 export interface Survey {
   id: string;
   title: string;
-  description?: string;        // optional (Beschreibungstext)
+  description?: string;
   category: SurveyCategory;
-  endDate: string;            // ISO-Datum, optional
-  createdAt: string;           // ISO-Datum
+  endDate?: string;
+  createdAt: string;
   questions: Question[];
   status: 'draft' | 'published';
+}
 
+export interface SurveyInput {
+  title: string;
+  description?: string;
+  category: SurveyCategory;
+  endDate?: string;
+  status: 'draft' | 'published';
+  questions: {
+    text: string;
+    allowMultiple: boolean;
+    answers: { text: string }[];
+  }[];
 }

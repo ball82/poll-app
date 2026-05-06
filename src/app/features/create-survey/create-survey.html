@@ -39,14 +39,11 @@
               <div class="field">
                 <div class="field__head">
                   <label for="endDate" class="field__label">
-                    Set end date <span class="field__optional">(optional)</span>
+                    Set end date
                   </label>
                   <button type="button" class="field__clear" (click)="clearField('endDate')" aria-label="Clear">🗑</button>
                 </div>
                 <input id="endDate" type="date" formControlName="endDate" class="field__input" [min]="minDate" />
-                @if (form.get('endDate')?.touched && form.get('endDate')?.invalid) {
-                  <p class="field__error">Please choose an end date.</p>
-                }
               </div>
 
               <div class="field">
@@ -98,7 +95,7 @@
                     <div formArrayName="answers">
                       @for (answer of getAnswers(qIndex).controls; track $index; let aIndex = $index) {
                         <div class="answer-row" [formGroupName]="aIndex">
-                          <span class="answer-row__letter">{{ ['A', 'B', 'C', 'D', 'E', 'F'][aIndex] }}.</span>
+                          <span class="answer-row__letter">{{ answerLetters[aIndex] }}.</span>
                           <div class="answer-row__field">
                             <input type="text" formControlName="text" class="field__input answer-row__input"
                               [class.field__input--error]="answer.get('text')?.touched && answer.get('text')?.invalid" />

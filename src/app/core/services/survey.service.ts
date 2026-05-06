@@ -1,34 +1,29 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
-import { Survey, SurveyCategory } from '../models/survey.model';
-import { Supabase } from './supabase';
+import { Survey, SurveyCategory, SurveyInput } from '../models/survey.model';
+import { SupabaseService } from './supabase';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SurveyService {
-  private supabase = inject(Supabase);
+  private supabase = inject(SupabaseService);
 
-  // privater, schreibbarer Signal-State
   private readonly _surveys = signal<Survey[]>([]);
   private readonly _isLoading = signal<boolean>(false);
   private readonly _error = signal<string | null>(null);
 
-  // öffentlicher, nur lesbarer State
   readonly surveys = this._surveys.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
 
-  // Computed: alle aktiven Umfragen (nicht abgelaufen)
   readonly activeSurveys = computed(() =>
     this._surveys().filter(s => !this.isExpired(s) && s.status === 'published')
   );
 
-  // Computed: alle abgelaufenen Umfragen
   readonly pastSurveys = computed(() =>
     this._surveys().filter(s => this.isExpired(s))
   );
 
-  // Computed: bald endende Umfragen (sortiert, max. 3)
   readonly endingSoonSurveys = computed(() =>
     this.activeSurveys()
       .filter(s => s.endDate)
@@ -39,17 +34,14 @@ export class SurveyService {
   );
 
   constructor() {
-    // Beim Start: Daten aus Supabase laden
     this.loadSurveys();
   }
 
-  // ===== SURVEYS LADEN =====
   async loadSurveys(): Promise<void> {
     this._isLoading.set(true);
     this._error.set(null);
 
     try {
-      // 1) Surveys laden
       const { data: surveysData, error: sError } = await this.supabase.client
         .from('surveys')
         .select('*')
@@ -57,7 +49,6 @@ export class SurveyService {
 
       if (sError) throw sError;
 
-      // 2) Questions laden
       const { data: questionsData, error: qError } = await this.supabase.client
         .from('questions')
         .select('*')
@@ -65,7 +56,6 @@ export class SurveyService {
 
       if (qError) throw qError;
 
-      // 3) Answers laden
       const { data: answersData, error: aError } = await this.supabase.client
         .from('answers')
         .select('*')
@@ -73,7 +63,6 @@ export class SurveyService {
 
       if (aError) throw aError;
 
-      // 4) Daten zusammenbauen (DB-Format -> App-Format)
       const surveys: Survey[] = (surveysData ?? []).map(s => ({
         id: s.id,
         title: s.title,
@@ -99,23 +88,21 @@ export class SurveyService {
       }));
 
       this._surveys.set(surveys);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load surveys';
       console.error('Error loading surveys:', err);
-      this._error.set(err.message ?? 'Failed to load surveys');
+      this._error.set(message);
     } finally {
       this._isLoading.set(false);
     }
   }
 
-  // Eine bestimmte Umfrage aus dem aktuellen State holen
   getSurveyById(id: string): Survey | undefined {
     return this._surveys().find(s => s.id === id);
   }
 
-  // ===== NEUE SURVEY ANLEGEN =====
-  async addSurvey(input: Omit<Survey, 'id' | 'createdAt'>): Promise<Survey | null> {
+  async addSurvey(input: SurveyInput): Promise<Survey | null> {
     try {
-      // 1) Survey einfügen
       const { data: surveyRow, error: sError } = await this.supabase.client
         .from('surveys')
         .insert({
@@ -130,7 +117,6 @@ export class SurveyService {
 
       if (sError || !surveyRow) throw sError;
 
-      // 2) Questions einfügen
       for (let qIndex = 0; qIndex < input.questions.length; qIndex++) {
         const q = input.questions[qIndex];
 
@@ -147,7 +133,6 @@ export class SurveyService {
 
         if (qError || !questionRow) throw qError;
 
-        // 3) Answers einfügen
         const answersToInsert = q.answers.map((a, aIndex) => ({
           question_id: questionRow.id,
           text: a.text,
@@ -162,25 +147,21 @@ export class SurveyService {
         if (aError) throw aError;
       }
 
-      // 4) Alle Surveys neu laden
       await this.loadSurveys();
 
-      // 5) Neue Survey zurückgeben
       return this.getSurveyById(surveyRow.id) ?? null;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to add survey';
       console.error('Error adding survey:', err);
-      this._error.set(err.message ?? 'Failed to add survey');
+      this._error.set(message);
       return null;
     }
   }
 
-  // ===== STIMME ABGEBEN =====
   async vote(surveyId: string, votes: { questionId: string; answerIds: string[] }[]): Promise<void> {
     try {
-      // Alle gewählten Antworten um +1 erhöhen
       for (const v of votes) {
         for (const answerId of v.answerIds) {
-          // aktuellen Stand holen
           const survey = this.getSurveyById(surveyId);
           const answer = survey?.questions
             .find(q => q.id === v.questionId)
@@ -197,23 +178,19 @@ export class SurveyService {
         }
       }
 
-      // Lokal als "voted" merken (im Browser)
       this.markAsVoted(surveyId);
-
-      // Daten neu laden
       await this.loadSurveys();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to submit vote';
       console.error('Error voting:', err);
-      this._error.set(err.message ?? 'Failed to submit vote');
+      this._error.set(message);
     }
   }
 
-  // ===== "Hat schon gevotet?" - bleibt im LocalStorage =====
   private readonly VOTED_KEY = 'poll-app-voted-surveys';
 
   hasVoted(surveyId: string): boolean {
-    const list = this.getVotedList();
-    return list.includes(surveyId);
+    return this.getVotedList().includes(surveyId);
   }
 
   private markAsVoted(surveyId: string): void {
@@ -233,7 +210,6 @@ export class SurveyService {
     }
   }
 
-  // ===== HILFSFUNKTIONEN =====
   isExpired(survey: Survey): boolean {
     if (!survey.endDate) return false;
     return new Date(survey.endDate).getTime() < Date.now();
@@ -243,9 +219,5 @@ export class SurveyService {
     if (!survey.endDate) return null;
     const diff = new Date(survey.endDate).getTime() - Date.now();
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
-  }
-
-  generateId(): string {
-    return crypto.randomUUID();
   }
 }
