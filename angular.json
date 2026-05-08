@@ -29,6 +29,7 @@
                 "input": "public"
               }
             ],
+            "baseHref": "./",
             "styles": ["src/styles.scss"]
           },
           "configurations": {
