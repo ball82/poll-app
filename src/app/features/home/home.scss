@@ -98,7 +98,7 @@
     border-radius: 999px;
     background-color: transparent;
     color: var(--color-text-light);
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
     transition: background-color 0.2s;
 
@@ -121,7 +121,7 @@
     background: transparent;
     border: none;
     color: var(--color-text-light);
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -129,7 +129,7 @@
   }
 
   &__arrow {
-    font-size: 12px;
+    font-size: 16px;
   }
 
   &__menu {
@@ -152,7 +152,7 @@
     background: none;
     border: none;
     padding: 8px 16px;
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
     color: var(--color-text-dark);
 
@@ -183,24 +183,25 @@
   color: rgba(255, 255, 255, 0.5);
 }
 
+
+
+
 @media (max-width: 1080px) {
   .ending-soon {
-    /* Aus Grid wird ein horizontaler Flex-Slider */
+  
     display: flex;
     overflow-x: auto;
     gap: 16px;
 
-    /* Snap-Effekt: Karten rasten beim Scrollen ein */
+
     scroll-snap-type: x mandatory;
 
-    /* Scrollbar verstecken */
     scrollbar-width: none;
 
     &::-webkit-scrollbar {
       display: none;
     }
 
-    /* Jede Karte: feste Breite, snappt links ein */
     app-survey-card {
       flex: 0 0 80%;
       max-width: 320px;
@@ -209,7 +210,7 @@
   }
 
   .hero__image img {
-    width: 400px;
+    width: 320px;
     height: 400px;
   }
 }
@@ -252,7 +253,6 @@
     }
   }
 
-  /* Restliche Mobile-Styles bleiben wie sie sind */
   .surveys-section {
     &__title {
       font-size: 36px;
