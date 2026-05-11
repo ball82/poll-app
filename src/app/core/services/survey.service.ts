@@ -2,6 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { Survey, SurveyCategory, SurveyInput } from '../models/survey.model';
 import { SupabaseService } from './supabase';
 
+/** Datenbankzeile der `surveys`-Tabelle. */
 type SurveyRow = {
   id: string;
   title: string;
@@ -12,6 +13,7 @@ type SurveyRow = {
   status: 'draft' | 'published';
 };
 
+/** Datenbankzeile der `questions`-Tabelle. */
 type QuestionRow = {
   id: string;
   survey_id: string;
@@ -19,18 +21,29 @@ type QuestionRow = {
   allow_multiple: boolean;
 };
 
+/** Datenbankzeile der `answers`-Tabelle. */
 type AnswerRow = {
   id: string;
   question_id: string;
   text: string;
   votes: number;
 };
+
+/** Gebündelte Rohdaten aller drei Tabellen für ein einzelnes Mapping. */
 type SurveyRows = {
   surveyRows: SurveyRow[];
   questionRows: QuestionRow[];
   answerRows: AnswerRow[];
 };
 
+/**
+ * Zentraler Service für alle Umfrage-Operationen.
+ *
+ * @remarks
+ * Verwaltet den Umfrage-State via Angular Signals und kommuniziert
+ * ausschliesslich über den `SupabaseService` mit der Datenbank.
+ * Abstimmungs-History wird im `localStorage` des Browsers persistiert.
+ */
 @Injectable({
   providedIn: 'root',
 })
@@ -41,20 +54,26 @@ export class SurveyService {
   private readonly _isLoading = signal<boolean>(false);
   private readonly _error = signal<string | null>(null);
 
+  /** Schreibgeschütztes Signal mit allen geladenen Umfragen. */
   readonly surveys = this._surveys.asReadonly();
+  /** Gibt `true` zurück, solange Daten geladen werden. */
   readonly isLoading = this._isLoading.asReadonly();
+  /** Enthält die letzte Fehlermeldung oder `null`. */
   readonly error = this._error.asReadonly();
 
+  /** Alle aktiven (nicht abgelaufenen, publizierten) Umfragen, nach Enddatum sortiert. */
   readonly activeSurveys = computed(() =>
     this.sortByEndDate(
       this._surveys().filter(s => !this.isExpired(s) && s.status === 'published')
     )
   );
 
+  /** Alle abgelaufenen Umfragen, nach Enddatum sortiert. */
   readonly pastSurveys = computed(() =>
     this.sortByEndDate(this._surveys().filter(s => this.isExpired(s)))
   );
 
+  /** Die drei aktiven Umfragen mit dem nächsten Ablaufdatum. */
   readonly endingSoonSurveys = computed(() =>
     this.activeSurveys()
       .filter(s => s.endDate)
@@ -68,6 +87,10 @@ export class SurveyService {
     this.loadSurveys();
   }
 
+  /**
+   * Lädt alle Umfragen, Fragen und Antworten aus der Datenbank
+   * und aktualisiert den internen Signal-State.
+   */
   async loadSurveys(): Promise<void> {
     this._isLoading.set(true);
     this._error.set(null);
@@ -82,6 +105,9 @@ export class SurveyService {
     }
   }
 
+  /**
+   * Lädt die Rohdaten aller drei Tabellen parallel.
+   */
   private async fetchSurveyRows(): Promise<SurveyRows> {
     const surveyRows = await this.fetchSurveys();
     const questionRows = await this.fetchQuestions();
@@ -150,10 +176,20 @@ export class SurveyService {
       .map(a => ({ id: a.id, text: a.text, votes: a.votes }));
   }
 
+  /**
+   * Gibt eine einzelne Umfrage aus dem aktuellen State zurück.
+   * @param id - ID der gesuchten Umfrage
+   * @returns Die gefundene Umfrage oder `undefined`
+   */
   getSurveyById(id: string): Survey | undefined {
     return this._surveys().find(s => s.id === id);
   }
 
+  /**
+   * Speichert eine neue Umfrage mit allen Fragen und Antworten in der Datenbank.
+   * @param input - Eingabedaten der neuen Umfrage
+   * @returns Die neu erstellte Umfrage oder `null` bei Fehler
+   */
   async addSurvey(input: SurveyInput): Promise<Survey | null> {
     try {
       const surveyRow = await this.insertSurvey(input);
@@ -238,6 +274,11 @@ export class SurveyService {
     }));
   }
 
+  /**
+   * Speichert die Abstimmung des Nutzers und aktualisiert den State.
+   * @param surveyId - ID der Umfrage
+   * @param votes - Array mit je einer `questionId` und den gewählten `answerIds`
+   */
   async vote(surveyId: string, votes: { questionId: string; answerIds: string[] }[]): Promise<void> {
     try {
       await this.submitVotes(surveyId, votes);
@@ -264,6 +305,11 @@ export class SurveyService {
     }
   }
 
+  /**
+   * Erhöht den Vote-Zähler einer Antwort um 1.
+   * Liest den aktuellen Wert aus dem Signal-State, um Race-Conditions mit
+   * `loadSurveys` zu minimieren.
+   */
   private async incrementAnswerVote(
     surveyId: string,
     questionId: string,
@@ -282,12 +328,21 @@ export class SurveyService {
       ?.answers.find(a => a.id === answerId);
   }
 
+  /** localStorage-Key für die Liste bereits abgestimmter Umfragen. */
   private readonly VOTED_KEY = 'poll-app-voted-surveys';
 
+  /**
+   * Gibt an, ob der aktuelle Nutzer bereits für diese Umfrage abgestimmt hat.
+   * @param surveyId - ID der Umfrage
+   */
   hasVoted(surveyId: string): boolean {
     return this.getVotedList().includes(surveyId);
   }
 
+  /**
+   * Trägt eine Umfrage-ID in die lokale Voted-Liste ein, falls noch nicht vorhanden.
+   * @param surveyId - ID der abgestimmten Umfrage
+   */
   private markAsVoted(surveyId: string): void {
     const list = this.getVotedList();
     if (!list.includes(surveyId)) {
@@ -296,6 +351,10 @@ export class SurveyService {
     }
   }
 
+  /**
+   * Liest die Liste abgestimmter Umfragen aus dem localStorage.
+   * Gibt bei Parsing-Fehler ein leeres Array zurück.
+   */
   private getVotedList(): string[] {
     try {
       const data = localStorage.getItem(this.VOTED_KEY);
@@ -305,17 +364,27 @@ export class SurveyService {
     }
   }
 
+  /**
+   * Gibt an, ob das Enddatum einer Umfrage in der Vergangenheit liegt.
+   * @param survey - Die zu prüfende Umfrage
+   */
   isExpired(survey: Survey): boolean {
     if (!survey.endDate) return false;
     return new Date(survey.endDate).getTime() < Date.now();
   }
 
+  /**
+   * Berechnet die verbleibenden Tage bis zum Ablauf einer Umfrage.
+   * @param survey - Die zu prüfende Umfrage
+   * @returns Anzahl verbleibender Tage (mind. 0), oder `null` wenn kein Enddatum gesetzt
+   */
   daysRemaining(survey: Survey): number | null {
     if (!survey.endDate) return null;
     const diff = new Date(survey.endDate).getTime() - Date.now();
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   }
 
+  /** Sortiert Umfragen aufsteigend nach Enddatum; Umfragen ohne Datum kommen zuletzt. */
   private sortByEndDate(surveys: Survey[]): Survey[] {
     return [...surveys].sort((a, b) => this.endTime(a) - this.endTime(b));
   }
@@ -325,6 +394,12 @@ export class SurveyService {
     return new Date(survey.endDate).getTime();
   }
 
+  /**
+   * Setzt die Fehlermeldung im State und loggt den Fehler in der Konsole.
+   * @param err - Der aufgetretene Fehler
+   * @param fallback - Fallback-Nachricht wenn `err` kein `Error`-Objekt ist
+   * @param label - Prefix für den `console.error`-Aufruf
+   */
   private handleError(err: unknown, fallback: string, label: string): void {
     const message = err instanceof Error ? err.message : fallback;
     console.error(label, err);

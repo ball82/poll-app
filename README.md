@@ -119,6 +119,77 @@ Survey ──< Question ──< Answer
 
 ---
 
+## 🚀 Installation
+
+### Voraussetzungen
+
+- [Node.js](https://nodejs.org/) (v18+)
+- [Angular CLI](https://angular.dev/tools/cli) (`npm install -g @angular/cli`)
+- Ein kostenloses [Supabase](https://supabase.com)-Konto mit einem eigenen Projekt
+
+> **Hinweis:** Die App speichert alle Daten extern in einer **Supabase-Datenbank** (PostgreSQL).  
+> Ohne eine eigene Supabase-Instanz läuft die App zwar, kann aber keine Daten laden oder speichern.
+
+### 1. Repository klonen
+
+```bash
+git clone https://github.com/dein-username/poll-app.git
+cd poll-app/poll-app
+npm install
+```
+
+### 2. Supabase-Zugangsdaten eintragen
+
+Die App benötigt eine eigene Supabase-Instanz. Trage deine **Project URL** und deinen **anon public API Key** in die Environment-Dateien ein:
+
+- `src/environments/environment.development.ts` (lokale Entwicklung)
+- `src/environments/environment.ts` (Produktions-Build)
+
+> URL und API Key findest du in deinem Supabase-Dashboard unter:  
+> **Project Settings → API → Project URL & Project API Keys (anon public)**
+
+### 3. Datenbankschema einrichten
+
+Erstelle in Supabase (SQL Editor) folgende Tabellen:
+
+```sql
+create table surveys (
+  id          uuid primary key default gen_random_uuid(),
+  title       text not null,
+  description text,
+  category    text not null,
+  end_date    timestamptz,
+  created_at  timestamptz default now(),
+  status      text default 'published'
+);
+
+create table questions (
+  id         uuid primary key default gen_random_uuid(),
+  survey_id  uuid references surveys(id) on delete cascade,
+  text       text not null,
+  allow_multiple boolean default false,
+  position   int default 0
+);
+
+create table answers (
+  id          uuid primary key default gen_random_uuid(),
+  question_id uuid references questions(id) on delete cascade,
+  text        text not null,
+  votes       int default 0,
+  position    int default 0
+);
+```
+
+### 4. Dev-Server starten
+
+```bash
+ng serve
+```
+
+Die App ist anschliessend unter `http://localhost:4200` erreichbar.
+
+---
+
 ## ✅ User Stories
 
 Alle 5 User Stories aus der Anforderung erfüllt:

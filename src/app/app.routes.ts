@@ -1,5 +1,12 @@
 import { Routes } from '@angular/router';
 
+/**
+ * Haupt-Routen der Applikation.
+ *
+ * @remarks
+ * Alle Feature-Komponenten werden lazy-loaded.
+ * Unbekannte Pfade (`**`) leiten zur Startseite um.
+ */
 export const routes: Routes = [
   {
     path: '',

@@ -4,6 +4,15 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SurveyService } from '../../core/services/survey.service';
 import { SurveyResults } from '../../shared/components/survey-results/survey-results';
 
+/**
+ * Detailseite einer einzelnen Umfrage.
+ *
+ * @remarks
+ * Ermöglicht das Abstimmen, zeigt den Status (abgelaufen / bereits abgestimmt)
+ * und blendet nach der Stimmabgabe die Ergebnisse ein.
+ * Fügt beim Laden die CSS-Klasse `page-light` zum `body` hinzu
+ * und entfernt sie beim Verlassen der Seite wieder.
+ */
 @Component({
   selector: 'app-survey-detail',
   imports: [RouterLink, SurveyResults],
@@ -30,26 +39,37 @@ export class SurveyDetail implements OnInit, OnDestroy {
     this.document.body.classList.remove('page-light');
   }
 
+  /** Buchstaben-Labels für Antwortoptionen (A–F). */
   readonly answerLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
 
+  /** ID der Umfrage aus dem URL-Parameter. */
   private readonly surveyId = this.route.snapshot.paramMap.get('id') ?? '';
 
+  /** Die aktuell angezeigte Umfrage (reaktiv via Signal). */
   readonly survey = computed(() => this.surveyService.getSurveyById(this.surveyId));
 
+  /**
+   * Map von `questionId` → Set von gewählten `answerIds`.
+   * Wird bei jeder Antwortauswahl immutabel neu gesetzt.
+   */
   readonly selectedAnswers = signal<Map<string, Set<string>>>(new Map());
 
+  /** Steuert ob die Ergebnisansicht eingeblendet ist. */
   readonly showResults = signal(false);
 
+  /** Gibt an, ob die Umfrage abgelaufen ist. */
   readonly isExpired = computed(() => {
     const s = this.survey();
     return s ? this.surveyService.isExpired(s) : false;
   });
 
+  /** Gibt an, ob der aktuelle Nutzer bereits abgestimmt hat. */
   readonly hasVoted = computed(() => {
     const s = this.survey();
     return s ? this.surveyService.hasVoted(s.id) : false;
   });
 
+  /** Lesbares Label für die verbleibende Zeit (z. B. `"Ends in 3 Days"`). */
   readonly endsInLabel = computed(() => {
     const s = this.survey();
     if (!s?.endDate) return null;
@@ -60,12 +80,18 @@ export class SurveyDetail implements OnInit, OnDestroy {
     return `Ends in ${days} Days`;
   });
 
+  /** Enddatum formatiert nach deutschem Standard (dd.mm.yyyy). */
   readonly endDateFormatted = computed(() => {
     const s = this.survey();
     if (!s?.endDate) return null;
     return new Date(s.endDate).toLocaleDateString('de-DE');
   });
 
+  /**
+   * Gibt an, ob das Formular abgeschickt werden kann.
+   * `false` wenn bereits abgestimmt, Umfrage abgelaufen oder
+   * nicht alle Fragen beantwortet sind.
+   */
   readonly canSubmit = computed(() => {
     if (this.hasVoted() || this.isExpired()) return false;
     const s = this.survey();
@@ -76,6 +102,18 @@ export class SurveyDetail implements OnInit, OnDestroy {
     });
   });
 
+  /**
+   * Wählt oder deselektiert eine Antwort.
+   *
+   * @remarks
+   * Bei `allowMultiple = false` wird die vorherige Auswahl der Frage ersetzt.
+   * Bei `allowMultiple = true` wird die Antwort getoggelt.
+   * Ignoriert Eingaben wenn bereits abgestimmt oder Umfrage abgelaufen.
+   *
+   * @param questionId - ID der Frage
+   * @param answerId - ID der gewählten Antwort
+   * @param allowMultiple - Ob mehrere Antworten erlaubt sind
+   */
   toggleAnswer(questionId: string, answerId: string, allowMultiple: boolean): void {
     if (this.hasVoted() || this.isExpired()) return;
     this.selectedAnswers.update(map =>
@@ -106,10 +144,18 @@ export class SurveyDetail implements OnInit, OnDestroy {
     return set;
   }
 
+  /**
+   * Gibt an, ob eine bestimmte Antwort aktuell ausgewählt ist.
+   * @param questionId - ID der Frage
+   * @param answerId - ID der Antwort
+   */
   isSelected(questionId: string, answerId: string): boolean {
     return this.selectedAnswers().get(questionId)?.has(answerId) ?? false;
   }
 
+  /**
+   * Schickt die Abstimmung ab und blendet danach die Ergebnisse ein.
+   */
   async submitVote(): Promise<void> {
     const s = this.survey();
     if (!s) return;
@@ -125,10 +171,12 @@ export class SurveyDetail implements OnInit, OnDestroy {
     this.showResults.set(true);
   }
 
+  /** Blendet die Ergebnisansicht ein oder aus. */
   toggleResults(): void {
     this.showResults.update(v => !v);
   }
 
+  /** Schliesst die Detailseite und navigiert zur Startseite. */
   closeAndGoHome(): void {
     this.router.navigate(['/home']);
   }

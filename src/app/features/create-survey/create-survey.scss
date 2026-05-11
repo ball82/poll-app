@@ -5,7 +5,7 @@
   height: 100vh;
   background-color: var(--color-bg-light);
   z-index: 1000;
-  overflow-y: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -21,12 +21,17 @@
   color: var(--color-text-light);
   width: 100%;
   max-width: 1200px;
+  max-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 
   &__top {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
+    flex-shrink: 0;
   }
 
   &__status {
@@ -44,6 +49,15 @@
     color: var(--color-primary);
     line-height: 1;
     margin-bottom: 24px;
+    flex-shrink: 0;
+  }
+
+  &__middle {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
   }
 }
 
@@ -51,11 +65,24 @@
   background-color: var(--color-bg-elevated);
   border-radius: 8px 32px 8px 8px;
   padding: 32px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.questions-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: 16px;
+  padding-right: 14px;
 }
 
 .cancel-btn {
   padding: 8px 16px;
-  background-color: var(--color-btn-secondary);
+  background-color: #7b5c55;
   color: var(--color-text-light);
   border: none;
   border-radius: 8px;
@@ -67,7 +94,7 @@
   font-weight: 600;
 
   &:hover {
-    background-color: var(--color-btn-secondary-hover);
+    background-color: #6a4f49;
   }
 }
 
@@ -88,7 +115,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 16px;
   align-items: start;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
 }
 
 .field {
@@ -172,22 +199,22 @@
   &__error {
     color: var(--color-error);
     font-size: 16px;
-    margin-top: -8px;
   }
 }
 
 select.field__input--select {
   appearance: none;
   -webkit-appearance: none;
-  background-color: var(--color-btn-secondary);
+  background-color: #7b5c55;
   color: var(--color-text-light);
   font-weight: 600;
   cursor: pointer;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ffffff' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-position: calc(100% - 14px) center;
   background-repeat: no-repeat;
-  padding-right: 36px;
+  padding: 10px 36px 10px 12px;
   border-radius: 8px;
+  margin-top: 5px;
 
   option {
     background-color: var(--color-bg);
@@ -200,20 +227,20 @@ select.field__input--select {
   }
 
   &:hover {
-    background-color: var(--color-btn-secondary-hover);
+    background-color: #6a4f49;
   }
 }
 
 .questions-section {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 24px;
 }
 
 .question-block {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
 
   &__head {
     display: flex;
@@ -262,7 +289,7 @@ select.field__input--select {
   grid-template-columns: 24px 1fr 32px;
   align-items: start;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
 
   &__letter {
     font-weight: 700;
@@ -307,7 +334,7 @@ select.field__input--select {
   align-self: flex-start;
   margin-top: 16px;
   padding: 10px 20px;
-  background-color: var(--color-btn-secondary);
+  background-color: #7b5c55;
   color: var(--color-text-light);
   border: none;
   border-radius: 8px;
@@ -319,7 +346,7 @@ select.field__input--select {
   gap: 8px;
 
   &:hover {
-    background-color: var(--color-btn-secondary-hover);
+    background-color: #6a4f49;
   }
 }
 
@@ -327,20 +354,21 @@ select.field__input--select {
   display: flex;
   justify-content: flex-end;
   margin-top: 24px;
+  flex-shrink: 0;
 }
 
 .publish-btn {
   padding: 12px 36px;
   border: none;
-  background-color: var(--color-accent);
-  color: var(--color-text-dark);
+  background-color: #7b5c55;
+  color: var(--color-text-light);
   border-radius: 8px;
   font-weight: 700;
   font-size: 16px;
   cursor: pointer;
 
   &:hover {
-    background-color: var(--color-primary);
+    background-color: #6a4f49;
   }
 }
 
@@ -399,14 +427,26 @@ select.field__input--select {
   .create-outer {
     padding: 24px 16px;
     justify-content: flex-start;
+    overflow-y: auto;
   }
 
   .create-card {
     border-radius: 8px 32px 8px 8px;
+    max-height: none;
+    overflow: visible;
 
     &__title {
       font-size: 40px;
     }
+  }
+
+  .form-inner {
+    overflow: visible;
+  }
+
+  .questions-scroll {
+    overflow-y: visible;
+    flex: none;
   }
 
   .form-grid {
@@ -415,6 +455,10 @@ select.field__input--select {
   }
 
   .field-row {
+    grid-template-columns: 1fr;
+  }
+
+  .questions-section {
     grid-template-columns: 1fr;
   }
 }

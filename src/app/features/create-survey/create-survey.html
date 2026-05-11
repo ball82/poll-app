@@ -14,6 +14,8 @@
       <h1 class="create-card__title">Create new survey</h1>
 
       <form class="form-inner" [formGroup]="form" (ngSubmit)="submit()">
+
+        <!-- Obere Felder: Survey name links, Describing text rechts -->
         <div class="form-grid">
 
           <!-- LINKE SPALTE -->
@@ -29,9 +31,7 @@
               </div>
               <input id="title" type="text" formControlName="title" class="field__input"
                 [class.field__input--error]="form.get('title')?.touched && form.get('title')?.invalid" />
-              @if (form.get('title')?.touched && form.get('title')?.invalid) {
-                <p class="field__error">Survey name is required (min. 3 characters).</p>
-              }
+              <p class="field__error" [style.visibility]="form.get('title')?.touched && form.get('title')?.invalid ? 'visible' : 'hidden'">Survey name is required (min. 3 characters).</p>
             </div>
 
             <!-- End date + Category nebeneinander -->
@@ -39,7 +39,7 @@
               <div class="field">
                 <div class="field__head">
                   <label for="endDate" class="field__label">
-                    Set end date
+                    Set end date <span class="field__optional">(optional)</span>
                   </label>
                   <button type="button" class="field__clear" (click)="clearField('endDate')" aria-label="Clear">🗑</button>
                 </div>
@@ -59,64 +59,8 @@
                     <option [value]="cat">{{ cat }}</option>
                   }
                 </select>
-                @if (form.get('category')?.touched && form.get('category')?.invalid) {
-                  <p class="field__error">Please select a category.</p>
-                }
+                <p class="field__error" [style.visibility]="form.get('category')?.touched && form.get('category')?.invalid ? 'visible' : 'hidden'">Please select a category.</p>
               </div>
-            </div>
-
-            <!-- Fragen -->
-            <div class="questions-section" formArrayName="questions">
-              @for (question of questions.controls; track $index; let qIndex = $index) {
-                <div class="question-block" [formGroupName]="qIndex">
-                  <div class="question-block__head">
-                    <label class="question-block__label">
-                      {{ qIndex + 1 }}. Question <span class="field__required">*</span>
-                    </label>
-                    <button type="button" class="field__clear" (click)="removeQuestion(qIndex)" aria-label="Remove question">🗑</button>
-                  </div>
-
-                  <input type="text" formControlName="text" class="field__input"
-                    placeholder="Which date would work best for you?"
-                    [class.field__input--error]="question.get('text')?.touched && question.get('text')?.invalid" />
-                  @if (question.get('text')?.touched && question.get('text')?.invalid) {
-                    <p class="field__error">Question text is required.</p>
-                  }
-
-                  <div class="answers-section">
-                    <div class="answers-section__head">
-                      <span class="field__label">Answers <span class="field__required">*</span></span>
-                      <label class="multi-toggle">
-                        <input type="checkbox" formControlName="allowMultiple" />
-                        Allow multiple answers.
-                      </label>
-                    </div>
-
-                    <div formArrayName="answers">
-                      @for (answer of getAnswers(qIndex).controls; track $index; let aIndex = $index) {
-                        <div class="answer-row" [formGroupName]="aIndex">
-                          <span class="answer-row__letter">{{ answerLetters[aIndex] }}.</span>
-                          <div class="answer-row__field">
-                            <input type="text" formControlName="text" class="field__input answer-row__input"
-                              [class.field__input--error]="answer.get('text')?.touched && answer.get('text')?.invalid" />
-                            @if (answer.get('text')?.touched && answer.get('text')?.invalid) {
-                              <p class="field__error">Answer text is required.</p>
-                            }
-                          </div>
-                          <button type="button" class="field__clear" (click)="removeAnswer(qIndex, aIndex)"
-                            [disabled]="getAnswers(qIndex).length <= 2" aria-label="Remove answer">🗑</button>
-                        </div>
-                      }
-                    </div>
-
-                    @if (getAnswers(qIndex).length < 6) {
-                      <button type="button" class="add-answer-btn" (click)="addAnswer(qIndex)">Add answer ⊕</button>
-                    } @else {
-                      <p class="hint-text">You can add up to 6 answer fields.</p>
-                    }
-                  </div>
-                </div>
-              }
             </div>
           </div>
 
@@ -131,17 +75,71 @@
               </div>
               <textarea id="description" formControlName="description" class="field__input field__input--textarea" rows="5"></textarea>
             </div>
-
-            <!-- Add next question in der rechten Spalte -->
-            <button type="button" class="add-question-btn" (click)="addQuestion()">
-              Add next question ⊕
-            </button>
           </div>
 
         </div>
+
+        <!-- Scrollbarer Bereich: Fragen + Add-Button -->
+        <div class="questions-scroll">
+
+          <div class="questions-section" formArrayName="questions">
+            @for (question of questions.controls; track $index; let qIndex = $index) {
+              <div class="question-block" [formGroupName]="qIndex">
+                <div class="question-block__head">
+                  <label class="question-block__label">
+                    {{ qIndex + 1 }}. Question <span class="field__required">*</span>
+                  </label>
+                  <button type="button" class="field__clear" (click)="removeQuestion(qIndex)" aria-label="Remove question">🗑</button>
+                </div>
+
+                <input type="text" formControlName="text" class="field__input"
+                  placeholder="Which date would work best for you?"
+                  [class.field__input--error]="question.get('text')?.touched && question.get('text')?.invalid" />
+                <p class="field__error" [style.visibility]="question.get('text')?.touched && question.get('text')?.invalid ? 'visible' : 'hidden'">Question text is required.</p>
+
+                <div class="answers-section">
+                  <div class="answers-section__head">
+                    <span class="field__label">Answers <span class="field__required">*</span></span>
+                    <label class="multi-toggle">
+                      <input type="checkbox" formControlName="allowMultiple" />
+                      Allow multiple answers.
+                    </label>
+                  </div>
+
+                  <div formArrayName="answers">
+                    @for (answer of getAnswers(qIndex).controls; track $index; let aIndex = $index) {
+                      <div class="answer-row" [formGroupName]="aIndex">
+                        <span class="answer-row__letter">{{ answerLetters[aIndex] }}.</span>
+                        <div class="answer-row__field">
+                          <input type="text" formControlName="text" class="field__input answer-row__input"
+                            [class.field__input--error]="answer.get('text')?.touched && answer.get('text')?.invalid" />
+                          <p class="field__error" [style.visibility]="answer.get('text')?.touched && answer.get('text')?.invalid ? 'visible' : 'hidden'">Answer text is required.</p>
+                        </div>
+                        <button type="button" class="field__clear" (click)="removeAnswer(qIndex, aIndex)"
+                          [disabled]="getAnswers(qIndex).length <= 2" aria-label="Remove answer">🗑</button>
+                      </div>
+                    }
+                  </div>
+
+                  @if (getAnswers(qIndex).length < 6) {
+                    <button type="button" class="add-answer-btn" (click)="addAnswer(qIndex)">Add answer ⊕</button>
+                  } @else {
+                    <p class="hint-text">You can add up to 6 answer fields.</p>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <button type="button" class="add-question-btn" (click)="addQuestion()">
+            Add next question ⊕
+          </button>
+
+        </div>
+
       </form>
 
-      <!-- Publish unten rechts -->
+      <!-- Publish unten rechts — ausserhalb des Scrollbereichs -->
       <div class="publish-row">
         <button type="button" class="publish-btn" (click)="submit()">Publish ✓</button>
       </div>
