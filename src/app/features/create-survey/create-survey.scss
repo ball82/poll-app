@@ -372,55 +372,38 @@ select.field__input--select {
   }
 }
 
-.overlay {
+.toast {
   position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  bottom: 72px;
+  right: 48px;
+  background-color: var(--color-surface);
+  color: var(--color-text-dark);
+  padding: 16px 24px;
+  border-radius: 8px 32px 8px 8px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  z-index: 100;
-  animation: fadeIn 0.2s ease;
+  gap: 24px;
+  font-weight: 700;
+  font-size: 16px;
+  z-index: 2000;
+  white-space: nowrap;
+  animation: slideUp 0.3s ease;
 
-  &__card {
-    background-color: var(--color-surface);
-    color: var(--color-text-dark);
-    padding: 48px 64px;
-    border-radius: 8px 32px 8px 8px;
-    text-align: center;
-    max-width: 480px;
-    animation: scaleIn 0.3s ease;
-  }
-
-  &__icon {
-    width: 64px;
-    height: 64px;
-    margin: 0 auto 24px;
-    border-radius: 50%;
-    background-color: var(--color-accent);
-    color: var(--color-text-dark);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 32px;
-    font-weight: 700;
-  }
-
-  &__title {
-    font-size: 28px;
-    color: var(--color-primary);
-    line-height: 1.2;
+  &__close {
+    font-size: 16px;
+    opacity: 0.5;
   }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
+@media (max-width: 1050px) {
+  .field-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 768px) {
@@ -452,10 +435,6 @@ select.field__input--select {
   .form-grid {
     grid-template-columns: 1fr;
     gap: 20px;
-  }
-
-  .field-row {
-    grid-template-columns: 1fr;
   }
 
   .questions-section {

@@ -55,8 +55,12 @@ export class CreateSurvey {
   /** Buchstaben-Labels für Antwortoptionen (A–F). */
   readonly answerLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
 
-  /** Frühestes wählbares Enddatum (heute). */
-  readonly minDate = new Date().toISOString().split('T')[0];
+  /** Frühestes wählbares Enddatum (morgen, da heute die Umfrage sofort schliessen würde). */
+  readonly minDate = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+  })();
 
   /** Reaktives Hauptformular mit Validierung. */
   readonly form: FormGroup = this.fb.group({
